@@ -19,8 +19,20 @@ classifiers = [
 ]
 license = {text = "MIT"}
 dependencies = [
-  "typer",
-  "rich",
+    "typer",
+    "rich",
+    "fsspec",
+    "s3fs",
+    "oracledb",
+    "polars",
+    "altair",
+    "xarray",
+    "zarr",
+    "matplotlib",
+    "hvplot",
+    "pyarrow",
+    "pyproj",
+    "rainfallqc",
 ]
 requires-python = ">= 3.12"
 
