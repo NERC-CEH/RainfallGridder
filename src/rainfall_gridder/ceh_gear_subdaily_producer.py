@@ -3,11 +3,6 @@ import numpy as np
 import polars as pl
 import xarray as xr
 import scipy.interpolate
-from .get_gear_daily import get_gear_daily
-from .stat_disag_fraction import (
-    get_stat_disag_fraction_15min,
-    get_stat_disag_fraction_hourly,
-)
 from .alt_stat_diag_frac import get_stat_disag_fraction_1h_grid, get_stat_disag_fraction_15min_grid
 
 MAX_DISTANCE_TO_GAUGE_M = 50000
