@@ -3,7 +3,7 @@ import numpy as np
 import polars as pl
 import xarray as xr
 import scipy.interpolate
-from .alt_stat_diag_frac import get_stat_disag_fraction_1h_grid, get_stat_disag_fraction_15min_grid
+from rainfall_gridder.generate_grids.alt_stat_diag_frac import get_stat_disag_fraction_1h_grid, get_stat_disag_fraction_15min_grid
 
 MAX_DISTANCE_TO_GAUGE_M = 50000
 

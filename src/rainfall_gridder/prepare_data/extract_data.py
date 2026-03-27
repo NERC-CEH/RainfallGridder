@@ -1,67 +1,6 @@
 import datetime
 from pathlib import Path
 import polars as pl
-import xarray as xr
-import scipy.stats
-
-HYDROLOGICAL_DAY_START_HOUR = 10 # hours, default 10-9 am
-NEAREST_GRID_CELL_TOLERANCE_M = 1000  # metres
-
-
-def check_col_content_is_identical(metadata, col):
-    assert len(metadata[col].unique()) == 1, (
-        f"Not all values in {col} are identical: '{metadata[col].unique()}'"
-    )
-
-
-def combine_metadata_col_contents(metadata, col):
-    return "-".join(str(row_val) for row_val in metadata[col].unique().to_list())
-
-
-class MetadataMerger:
-    def __init__(
-        self,
-        metadata: pl.DataFrame,
-        cols_to_check_identical: list,
-        cols_to_combine: list,
-        start_date_col: str,
-        end_date_col: str,
-    ):
-        self.metadata = metadata
-        self.cols_to_combine = cols_to_combine
-        self.cols_to_check_identical = cols_to_check_identical
-        self.start_date_col = start_date_col
-        self.end_date_col = end_date_col
-        self._check_for_identical_values_in_col()
-
-    def _check_for_identical_values_in_col(self):
-        for col in self.cols_to_check_identical:
-            check_col_content_is_identical(self.metadata, col)
-
-    def merge_group_metadata(
-        self, group_name, group_name_col, min_datetime, max_datetime, completeness_col
-    ):
-        combined_data = {}
-        combined_data[group_name_col] = group_name
-        for col in self.cols_to_combine:
-            combined_data[col] = combine_metadata_col_contents(self.metadata, col)
-        for col in self.cols_to_check_identical:
-            combined_data[col] = self.metadata[col][0]
-
-        combined_data[self.start_date_col] = min_datetime
-        combined_data[self.end_date_col] = max_datetime
-        combined_data[completeness_col] = None  # Temporary workaround
-
-        # Fill in missing columns with None
-        for col in self.metadata.columns:
-            if col not in combined_data.keys():
-                try:
-                    check_col_content_is_identical(self.metadata, col)
-                    combined_data[col] = self.metadata[col][0]
-                except AssertionError as ae:
-                    combined_data[col] = None
-
-        return pl.DataFrame(combined_data)
 
 
 def build_output_path(
@@ -108,21 +47,6 @@ def calculate_change_points(stations_in_same_location: pl.DataFrame, station_id_
     )
 
     return change_points_and_active_stations
-
-
-def get_nearest_rain_grid_cell(
-    rain_data: xr.Dataset,
-    easting: int | float,
-    northing: int | float,
-    tolerance=NEAREST_GRID_CELL_TOLERANCE_M,
-) -> xr.Dataset:
-    # Should this select the 2*2 grid cells surrounding (in case on edge of a single cell)?
-    return rain_data.sel(
-        x=easting,
-        y=northing,
-        method="nearest",
-        tolerance=tolerance,
-    )
 
 
 class RainGaugeSegmentCombiner:
@@ -340,85 +264,3 @@ class GaugeVsGriddedRainfallMatcher:
             daily_with_closest,
             return_gauge_name,
         )
-
-
-class GaugeVsGriddedCombiner:
-    def __init__(
-        self,
-        gauge_data: pl.DataFrame,
-        metadata: pl.DataFrame,
-        nearest_gridded_daily: xr.Dataset,
-        station_id: str,
-        gauge_data_col: str,
-        gridded_data_col: str,
-        start_datetime_col: str,
-        end_datetime_col: str,
-        station_id_col: str,
-        rainfall_offset_hours: int,
-        gauge_data_time_col: str = "DATE_TIME",
-        aggregate_gauge_to_daily: bool = True,
-    ):
-        """
-        TODO: make sure the combining of gauge name is done in order i.e. 1-2 not 2-1
-        """
-        # filter to the single station ID
-        self.gauge_data = gauge_data.filter(pl.col(station_id_col) == station_id).sort(
-            by=gauge_data_time_col
-        )
-        self.gauge_metadata = metadata.filter(pl.col(station_id_col) == station_id)
-        self.nearest_gridded_daily = get_nearest_rain_grid_cell(
-            nearest_gridded_daily,
-            easting=self.gauge_metadata["EASTING"][0],
-            northing=self.gauge_metadata["NORTHING"][0],
-        )
-        self.station_id = station_id
-        self.gauge_data_col = gauge_data_col
-        self.gridded_data_col = gridded_data_col
-        self.start_datetime_col = start_datetime_col
-        self.end_datetime_col = end_datetime_col
-        self.station_id_col = station_id_col
-        self.gauge_data_time_col = gauge_data_time_col
-        self.rainfall_offset_hours = rainfall_offset_hours
-        if aggregate_gauge_to_daily:
-            self.gauge_data = self._aggregate_gauge_subdaily_to_daily()
-        self.combined_data = self._join_gauge_to_grid()
-
-    def _aggregate_gauge_subdaily_to_daily(self) -> pl.DataFrame:
-        return (
-            self.gauge_data.drop_nulls()
-            .group_by_dynamic(
-                "DATE_TIME",
-                every="1d",
-                offset=f"{self.rainfall_offset_hours}h",
-                label='left',
-            )
-            .agg(pl.col(self.gauge_data_col).sum())
-        )
-
-    def _join_gauge_to_grid(self):
-        s_date = self.gauge_metadata[self.start_datetime_col][0]
-        e_date = self.gauge_metadata[self.end_datetime_col][0]
-        gauge_gridded_matcher = GaugeVsGriddedRainfallMatcher(
-            [self.gauge_data_col], output_col_name="", rainfall_offset_hours=self.rainfall_offset_hours
-        )
-        nearest_gridded_daily_cell_df = gauge_gridded_matcher.prepare_gridded_daily(
-            self.nearest_gridded_daily,
-            s_date=s_date,
-            e_date=e_date,
-            rain_col=self.gridded_data_col,
-        )
-        combined_gauge_gridded = gauge_gridded_matcher.join_daily_gauge_and_gridded(
-            self.gauge_data, nearest_gridded_daily_cell_df
-        )
-        return combined_gauge_gridded
-
-    def get_corr(self):
-        r_result = scipy.stats.pearsonr(
-            self.combined_data[self.gauge_data_col],
-            self.combined_data[self.gridded_data_col],
-        ).statistic
-        rho_result = scipy.stats.spearmanr(
-            self.combined_data[self.gauge_data_col],
-            self.combined_data[self.gridded_data_col],
-        ).statistic
-        return r_result, rho_result
