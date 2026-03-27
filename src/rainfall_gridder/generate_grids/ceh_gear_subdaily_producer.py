@@ -7,6 +7,7 @@ from rainfall_gridder.generate_grids.alt_stat_diag_frac import (
     get_stat_disag_fraction_1h_grid,
     get_stat_disag_fraction_15min_grid,
 )
+from rainfall_gridder.utils.spatial_utils import calculate_gauge_to_grid_centre_distance
 
 MAX_DISTANCE_TO_GAUGE_M = 50000
 
@@ -279,13 +280,6 @@ class CEHGEARSubDailyProducer:
         ceh_gear_one_day["min_dist"] = distance_grid
         ceh_gear_one_day["stat_disag"] = cells_to_stat_disag
         return ceh_gear_one_day
-
-
-def calculate_gauge_to_grid_centre_distance(x_grid_centre, y_grid_centre, gauge_x, gauge_y):
-    """
-    Calculate distance between a grid square centre and a gauge
-    """
-    return np.sqrt((x_grid_centre - gauge_x) ** 2 + (y_grid_centre - gauge_y) ** 2)
 
 
 def interpolate_values_onto_coordinate_grid(
