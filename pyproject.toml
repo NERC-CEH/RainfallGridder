@@ -19,8 +19,23 @@ classifiers = [
 ]
 license = {text = "MIT"}
 dependencies = [
-  "typer",
-  "rich",
+    "typer",
+    "rich",
+    "fsspec",
+    "s3fs",
+    "oracledb",
+    "polars",
+    "altair",
+    "xarray",
+    "zarr",
+    "matplotlib",
+    "hvplot",
+    "pyarrow",
+    "pyproj",
+    "rainfallqc",
+    "scipy>=1.17.1",
+    "numpy>=2.4.3",
+    "scipy-stubs~=1.17.1",
 ]
 requires-python = ">= 3.12"
 
@@ -46,10 +61,10 @@ docs = [
 ]
 
 [project.urls]
-bugs = "https://github.com/thomasjkeel/RainfallGridder/issues"
-changelog = "https://github.com/thomasjkeel/RainfallGridder/releases"
-documentation = "https://thomasjkeel.github.io/RainfallGridder/"
-homepage = "https://github.com/thomasjkeel/RainfallGridder"
+bugs = "https://codeberg.org/thomasjkeel/RainfallGridder/issues"
+changelog = "https://codeberg.org/thomasjkeel/RainfallGridder/releases"
+documentation = "https://thomasjkeel.codeberg.io/RainfallGridder/"
+homepage = "https://codeberg.org/thomasjkeel/RainfallGridder"
 
 [project.scripts]
 rainfall_gridder = "RainfallGridder.cli:app"
