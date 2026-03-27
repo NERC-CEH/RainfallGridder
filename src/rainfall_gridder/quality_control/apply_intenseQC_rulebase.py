@@ -3,12 +3,8 @@ import polars as pl
 TIME_STEP_CONVERSION = {"15m": "15m", "1h": "hourly"}
 
 
-def apply_conditional_rule(
-    data: pl.DataFrame, condition: pl.Expr, val_col: str
-) -> pl.DataFrame:
-    return data.with_columns(
-        pl.when(condition).then(None).otherwise(pl.col(val_col)).alias(val_col)
-    )
+def apply_conditional_rule(data: pl.DataFrame, condition: pl.Expr, val_col: str) -> pl.DataFrame:
+    return data.with_columns(pl.when(condition).then(None).otherwise(pl.col(val_col)).alias(val_col))
 
 
 def apply_rowbased_rulebase_to_one_station(
@@ -43,12 +39,8 @@ def apply_r1(
     rule_removed_rows = flags_by_row
 
     for year in qc2_list:
-        num_rows_removed += rule_removed_rows.filter(
-            pl.col("time").dt.year() == year
-        ).height
-        rule_removed_rows = apply_conditional_rule(
-            rule_removed_rows, (pl.col("time").dt.year() == year), station_id
-        )
+        num_rows_removed += rule_removed_rows.filter(pl.col("time").dt.year() == year).height
+        rule_removed_rows = apply_conditional_rule(rule_removed_rows, (pl.col("time").dt.year() == year), station_id)
     if return_count:
         return rule_removed_rows, num_rows_removed
     return rule_removed_rows
@@ -56,8 +48,7 @@ def apply_r1(
 
 def get_r7(station_id: str, time_step: str) -> pl.Expr:
     return (pl.col(f"wet_spell_flag_{TIME_STEP_CONVERSION[time_step]}") == 3) & (
-        pl.col(station_id)
-        > 2 * pl.col(station_id).filter(pl.col(station_id) > 0).mean()
+        pl.col(station_id) > 2 * pl.col(station_id).filter(pl.col(station_id) > 0).mean()
     )
 
 

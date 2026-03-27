@@ -19,28 +19,19 @@ def calculate_change_points(stations_in_same_location: pl.DataFrame, station_id_
     change_points = (
         pl.concat(
             [
-                stations_in_same_location.select(
-                    pl.col("START_DATE").alias("change_point")
-                ),
-                stations_in_same_location.select(
-                    pl.col("END_DATE").alias("change_point")
-                ),
+                stations_in_same_location.select(pl.col("START_DATE").alias("change_point")),
+                stations_in_same_location.select(pl.col("END_DATE").alias("change_point")),
             ]
         )
         .unique()
         .sort("change_point")
     )
 
-    segments = change_points.with_columns(
-        pl.col("change_point").shift(-1).alias("next_time")
-    ).drop_nulls()
+    segments = change_points.with_columns(pl.col("change_point").shift(-1).alias("next_time")).drop_nulls()
 
     change_points_and_active_stations = (
         segments.join(stations_in_same_location, how="cross")
-        .filter(
-            (pl.col("START_DATE") < pl.col("next_time"))
-            & (pl.col("END_DATE") > pl.col("change_point"))
-        )
+        .filter((pl.col("START_DATE") < pl.col("next_time")) & (pl.col("END_DATE") > pl.col("change_point")))
         .group_by(["change_point", "next_time"])
         .agg(pl.col(station_id_col).sort().alias("active_stations"))
         .sort("change_point")
@@ -60,18 +51,13 @@ class RainGaugeSegmentCombiner:
         self.metadata = metadata
         self.station_id_col = station_id_col
         self.change_points = self._calculate_change_points()
-        self.combined_station_col_name = self._get_combined_station_col_name(
-            station_id_col
-        )
+        self.combined_station_col_name = self._get_combined_station_col_name(station_id_col)
 
     def _calculate_change_points(self):
         return calculate_change_points(self.metadata, self.station_id_col)
 
     def _get_combined_station_col_name(self, station_id_col):
-        return "-".join(
-            str(int(station_id))
-            for station_id in self.metadata[station_id_col].unique().to_list()
-        )
+        return "-".join(str(int(station_id)) for station_id in self.metadata[station_id_col].unique().to_list())
 
     def _convert_station_ids_to_str(self, station_ids):
         """
@@ -92,9 +78,9 @@ class RainGaugeSegmentCombiner:
             station_ids = self._convert_station_ids_to_str(station_ids)
             station_ids_cols = [date_time_col] + station_ids
 
-            segment_rows = self.pivoted_gauge_data.filter(
-                pl.col(date_time_col) >= s_date
-            ).filter(pl.col(date_time_col) < e_date)[station_ids_cols]
+            segment_rows = self.pivoted_gauge_data.filter(pl.col(date_time_col) >= s_date).filter(
+                pl.col(date_time_col) < e_date
+            )[station_ids_cols]
 
             # Check which segmented rows line up better with daily gridded rainfall
             if len(station_ids) > 1:
@@ -112,9 +98,7 @@ class RainGaugeSegmentCombiner:
                     rain_col=rain_col,
                 )
             else:
-                segment_rows = segment_rows.rename(
-                    {station_ids[0]: self.combined_station_col_name}
-                )
+                segment_rows = segment_rows.rename({station_ids[0]: self.combined_station_col_name})
 
             combined_data = pl.concat([combined_data, segment_rows])
 
@@ -146,18 +130,11 @@ class GaugeVsGriddedRainfallMatcher:
         e_date: datetime.datetime,
         rain_col: str,
     ) -> pl.DataFrame:
-        gridded_daily = (
-            nearest_gridded_daily_cell.sel(time=slice(s_date, e_date))[rain_col]
-            .to_pandas()
-            .reset_index()
-        )
+        gridded_daily = nearest_gridded_daily_cell.sel(time=slice(s_date, e_date))[rain_col].to_pandas().reset_index()
 
         return (
             pl.from_pandas(gridded_daily)
-            .with_columns(
-                pl.col("time").cast(pl.Datetime("us"))
-                + datetime.timedelta(hours=self.rainfall_offset_hours)
-            )
+            .with_columns(pl.col("time").cast(pl.Datetime("us")) + datetime.timedelta(hours=self.rainfall_offset_hours))
             .rename({"time": "DATE_TIME"})
         )
 
@@ -180,18 +157,13 @@ class GaugeVsGriddedRainfallMatcher:
         rain_col: str,
     ) -> pl.DataFrame:
         df = df.with_columns(
-            pl.struct(
-                [
-                    (pl.col(c) - pl.col(rain_col)).abs().alias(c)
-                    for c in self.gauge_station_ids
-                ]
-            ).alias("rainfall_diff")
+            pl.struct([(pl.col(c) - pl.col(rain_col)).abs().alias(c) for c in self.gauge_station_ids]).alias(
+                "rainfall_diff"
+            )
         )
 
         return df.with_columns(
-            pl.col("rainfall_diff")
-            .map_elements(lambda d: min(d, key=d.get))
-            .alias("closest_gauge")
+            pl.col("rainfall_diff").map_elements(lambda d: min(d, key=d.get)).alias("closest_gauge")
         ).drop("rainfall_diff")
 
     def broadcast_daily_choice_to_subdaily(
@@ -219,8 +191,7 @@ class GaugeVsGriddedRainfallMatcher:
         # )
         joined = segment_rows.join_where(
             daily_with_closest,
-            (pl.col("DATE_TIME") >= pl.col("interval_start"))
-            & (pl.col("DATE_TIME") < pl.col("interval_end")),
+            (pl.col("DATE_TIME") >= pl.col("interval_start")) & (pl.col("DATE_TIME") < pl.col("interval_end")),
         ).select(
             "DATE_TIME",
             *self.gauge_station_ids,

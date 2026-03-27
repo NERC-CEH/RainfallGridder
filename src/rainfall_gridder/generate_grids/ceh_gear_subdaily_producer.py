@@ -3,9 +3,13 @@ import numpy as np
 import polars as pl
 import xarray as xr
 import scipy.interpolate
-from rainfall_gridder.generate_grids.alt_stat_diag_frac import get_stat_disag_fraction_1h_grid, get_stat_disag_fraction_15min_grid
+from rainfall_gridder.generate_grids.alt_stat_diag_frac import (
+    get_stat_disag_fraction_1h_grid,
+    get_stat_disag_fraction_15min_grid,
+)
 
 MAX_DISTANCE_TO_GAUGE_M = 50000
+
 
 class CEHGEARSubDailyProducer:
     def __init__(
@@ -33,9 +37,7 @@ class CEHGEARSubDailyProducer:
         self.station_id_col = station_id_col
         self.date_col = date_col
         self.hour_at_start_of_day = hour_at_start_of_day
-        self.one_day_rain_gauge_data = self._get_one_day_rain_gauge_data(
-            rain_gauge_data
-        )
+        self.one_day_rain_gauge_data = self._get_one_day_rain_gauge_data(rain_gauge_data)
         self.one_day_daily_totals = self._get_daily_gauge_totals()
         self.gauge_daily_info = self._get_daily_info()
         self.gauge_daily_totals = self.gauge_daily_info[self.rain_gauge_col].to_numpy()
@@ -56,11 +58,7 @@ class CEHGEARSubDailyProducer:
         end = start + datetime.timedelta(hours=24)  # e.g. 9:00 AM next day
         rain_gauge_data = rain_gauge_data.sort((self.station_id_col, self.date_col))
         return rain_gauge_data.filter(
-            (
-                pl.col(self.station_id_col).is_in(
-                    self.rain_gauge_metadata[self.station_id_col].unique().to_list()
-                )
-            )
+            (pl.col(self.station_id_col).is_in(self.rain_gauge_metadata[self.station_id_col].unique().to_list()))
             & (pl.col(self.date_col) >= start)
             & (pl.col(self.date_col) < end)
         )
@@ -81,16 +79,12 @@ class CEHGEARSubDailyProducer:
 
     def _get_daily_info(self) -> pl.DataFrame:
         gauge_daily_info = self.one_day_daily_totals.join(
-            self.rain_gauge_metadata.select(
-                [self.station_id_col, self.easting_col, self.northing_col]
-            ),
+            self.rain_gauge_metadata.select([self.station_id_col, self.easting_col, self.northing_col]),
             on=self.station_id_col,
             how="inner",
         )
         gauge_daily_info = gauge_daily_info.with_columns(
-            pl.struct([pl.col(self.easting_col), pl.col(self.northing_col)]).alias(
-                "points"
-            )
+            pl.struct([pl.col(self.easting_col), pl.col(self.northing_col)]).alias("points")
         )
         # Drop all daily totals that are NaN from distance calculation
         gauge_daily_info = gauge_daily_info.drop_nans(subset=[self.rain_gauge_col])
@@ -110,15 +104,9 @@ class CEHGEARSubDailyProducer:
         gauge_northing = self.gauge_daily_info[self.northing_col].to_numpy()
         gauge_points = self.gauge_daily_info["points"].to_numpy()
 
-        gauge_x_interpolator = scipy.interpolate.NearestNDInterpolator(
-            gauge_points, gauge_eastings
-        )
-        gauge_y_interpolator = scipy.interpolate.NearestNDInterpolator(
-            gauge_points, gauge_northing
-        )
-        daily_totals_interpolator = scipy.interpolate.NearestNDInterpolator(
-            gauge_points, self.gauge_daily_totals
-        )
+        gauge_x_interpolator = scipy.interpolate.NearestNDInterpolator(gauge_points, gauge_eastings)
+        gauge_y_interpolator = scipy.interpolate.NearestNDInterpolator(gauge_points, gauge_northing)
+        daily_totals_interpolator = scipy.interpolate.NearestNDInterpolator(gauge_points, self.gauge_daily_totals)
         return gauge_x_interpolator, gauge_y_interpolator, daily_totals_interpolator
 
     def run_interpolation(
@@ -128,15 +116,9 @@ class CEHGEARSubDailyProducer:
         x_grid: xr.DataArray,
         y_grid: xr.DataArray,
     ):
-        gauge_x_interpolator, gauge_y_interpolator, daily_totals_interpolator = (
-            self._build_interpolators()
-        )
-        gauge_x_grid = interpolate_values_onto_coordinate_grid(
-            gauge_x_interpolator, x_grid, y_grid, x_coords, y_coords
-        )
-        gauge_y_grid = interpolate_values_onto_coordinate_grid(
-            gauge_y_interpolator, x_grid, y_grid, x_coords, y_coords
-        )
+        gauge_x_interpolator, gauge_y_interpolator, daily_totals_interpolator = self._build_interpolators()
+        gauge_x_grid = interpolate_values_onto_coordinate_grid(gauge_x_interpolator, x_grid, y_grid, x_coords, y_coords)
+        gauge_y_grid = interpolate_values_onto_coordinate_grid(gauge_y_interpolator, x_grid, y_grid, x_coords, y_coords)
         daily_totals_grid = interpolate_values_onto_coordinate_grid(
             daily_totals_interpolator, x_grid, y_grid, x_coords, y_coords
         )
@@ -149,16 +131,10 @@ class CEHGEARSubDailyProducer:
         gauge_y_grid: xr.DataArray = None,
     ) -> xr.DataArray:
         # TODO: put in another class
-        x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(
-            land_mask, return_coords=True
-        )
+        x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(land_mask, return_coords=True)
         if not isinstance(gauge_x_grid, xr.DataArray) or not isinstance(gauge_y_grid, xr.DataArray):
-            gauge_x_grid, gauge_y_grid, _ = self.run_interpolation(
-                x_coords, y_coords, x_grid, y_grid
-            )
-        distance_grid = calculate_gauge_to_grid_centre_distance(
-            x_grid, y_grid, gauge_x_grid, gauge_y_grid
-        )
+            gauge_x_grid, gauge_y_grid, _ = self.run_interpolation(x_coords, y_coords, x_grid, y_grid)
+        distance_grid = calculate_gauge_to_grid_centre_distance(x_grid, y_grid, gauge_x_grid, gauge_y_grid)
         # mask out oceans
         distance_grid = distance_grid.where(land_mask)
         distance_grid["time"] = self.time_step
@@ -177,12 +153,8 @@ class CEHGEARSubDailyProducer:
             distance_grid = self.calculate_distance_grid(land_mask)
         # Get mask of cells for stat disaggregation (gap filling)
         daily_totals_grid_masked = daily_totals_grid.where(land_mask)
-        daily_totals_grid_masked = daily_totals_grid_masked.where(
-            daily_totals_grid != 0
-        )
-        daily_totals_grid_masked = daily_totals_grid_masked.where(
-            distance_grid < max_distance_to_gauge_m
-        )
+        daily_totals_grid_masked = daily_totals_grid_masked.where(daily_totals_grid != 0)
+        daily_totals_grid_masked = daily_totals_grid_masked.where(distance_grid < max_distance_to_gauge_m)
 
         # TODO: check the part where I remove max distance is correct
         cells_to_stat_disag = (daily_totals_grid_masked.isnull() == land_mask).where(
@@ -202,9 +174,7 @@ class CEHGEARSubDailyProducer:
         # TODO: check that this will always be the same order
         # 1. Get individual gauge coords for the day
         gauge_points = self.gauge_daily_info["points"].to_numpy()
-        x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(
-            land_mask, return_coords=True
-        )
+        x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(land_mask, return_coords=True)
         # 2. Calculate subdaily factor grid
         all_subdaily_factor_grid = []
 
@@ -212,20 +182,18 @@ class CEHGEARSubDailyProducer:
         # 2.1.1 prefilter out gauge stations not in the day
         station_ids_in_day = self.gauge_daily_info[self.station_id_col].to_list()
         one_day_rain_gauge_data = self.one_day_rain_gauge_data.filter(
-                pl.col(self.station_id_col).is_in(station_ids_in_day)
+            pl.col(self.station_id_col).is_in(station_ids_in_day)
         )
         one_day_rain_gauge_data.sort((self.station_id_col, self.date_col))
         # 2.1.2 Partition pl.Dataframe into individual time steps
         all_time_steps_gauge_data_groups = one_day_rain_gauge_data.partition_by(self.date_col, as_dict=True)
 
         for time_step, gauge_one_timestep in all_time_steps_gauge_data_groups.items():
-            time_step = time_step[0] # returned as a tuple, so need to get first item
+            time_step = time_step[0]  # returned as a tuple, so need to get first item
             assert len(gauge_one_timestep) == gauge_points.shape[0], (
                 "The number of gauges with data need to be the same as number of gauges"
             )
-            gauge_one_timestep_rainfall = gauge_one_timestep[
-                self.rain_gauge_col
-            ].to_numpy()
+            gauge_one_timestep_rainfall = gauge_one_timestep[self.rain_gauge_col].to_numpy()
 
             gauge_timestep_interpolator = scipy.interpolate.NearestNDInterpolator(
                 gauge_points, gauge_one_timestep_rainfall
@@ -247,9 +215,7 @@ class CEHGEARSubDailyProducer:
             #     else get_stat_disag_fraction_15min
             # )
             grid_disag_func = (
-                get_stat_disag_fraction_15min_grid
-                if self.data_resolution == "15m"
-                else get_stat_disag_fraction_1h_grid
+                get_stat_disag_fraction_15min_grid if self.data_resolution == "15m" else get_stat_disag_fraction_1h_grid
             )
             masked_one_day_gridded_daily = one_day_gridded_daily[gridded_rainfall_col].where(cells_to_stat_disag)
             if not masked_one_day_gridded_daily.isnull().all():
@@ -266,12 +232,10 @@ class CEHGEARSubDailyProducer:
                     masked_one_day_gridded_daily,
                     time_step_w_offset,
                 )
-                combined_factor_grid = factor_grid.where(
-                    cells_to_stat_disag_frac.isnull(), cells_to_stat_disag_frac
-                )
+                combined_factor_grid = factor_grid.where(cells_to_stat_disag_frac.isnull(), cells_to_stat_disag_frac)
             else:
                 # There are no cells to stat disaggregate
-                print('To remove: there are no cells to stat disagg')
+                print("To remove: there are no cells to stat disagg")
                 combined_factor_grid = factor_grid
 
             # set time
@@ -288,16 +252,10 @@ class CEHGEARSubDailyProducer:
         output_rainfall_name: str = "rainfall",
     ):
         # 1. Get coord grids
-        x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(
-            land_mask, return_coords=True
-        )
+        x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(land_mask, return_coords=True)
         # 2. Run interpolation for distance grid and daily totals
-        gauge_x_grid, gauge_y_grid, daily_totals_grid = self.run_interpolation(
-            x_coords, y_coords, x_grid, y_grid
-        )
-        distance_grid = self.calculate_distance_grid(
-            land_mask, gauge_x_grid, gauge_y_grid
-        )
+        gauge_x_grid, gauge_y_grid, daily_totals_grid = self.run_interpolation(x_coords, y_coords, x_grid, y_grid)
+        distance_grid = self.calculate_distance_grid(land_mask, gauge_x_grid, gauge_y_grid)
         distance_grid["time"] = self.time_step
 
         # 3. Get cells to statistically disaggregate based on interpolated daily totals
@@ -314,9 +272,7 @@ class CEHGEARSubDailyProducer:
             gridded_rainfall_col,
         )
         # 5. Downscale gridded daily by subdaily factors
-        ceh_gear_one_day = (
-            one_day_gridded_daily[gridded_rainfall_col] * all_factor_grid_ds
-        )
+        ceh_gear_one_day = one_day_gridded_daily[gridded_rainfall_col] * all_factor_grid_ds
 
         # 6. Convert to dataset
         ceh_gear_one_day = ceh_gear_one_day.to_dataset(name=output_rainfall_name)
@@ -325,9 +281,7 @@ class CEHGEARSubDailyProducer:
         return ceh_gear_one_day
 
 
-def calculate_gauge_to_grid_centre_distance(
-    x_grid_centre, y_grid_centre, gauge_x, gauge_y
-):
+def calculate_gauge_to_grid_centre_distance(x_grid_centre, y_grid_centre, gauge_x, gauge_y):
     """
     Calculate distance between a grid square centre and a gauge
     """

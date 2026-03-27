@@ -26,17 +26,15 @@ class NearbyGaugeDataLoader:
         self.nearby_gauge_distances = self._get_nearby_gauge_distances()
 
     def _get_nearby_metadata(self, metadata):
-        ten_nearest_neighbour_ids = (
-            neighbourhood_utils.get_ids_of_n_nearest_overlapping_neighbouring_gauges(
-                metadata,
-                target_id=self.station_id,
-                station_id_col=self.station_id_col,
-                distance_threshold=self.distance_threshold,
-                min_overlap_days=self.min_overlap_days,
-                n_closest=self.n_closest,
-                start_datetime_col=self.start_datetime_col,
-                end_datetime_col=self.end_datetime_col,
-            )
+        ten_nearest_neighbour_ids = neighbourhood_utils.get_ids_of_n_nearest_overlapping_neighbouring_gauges(
+            metadata,
+            target_id=self.station_id,
+            station_id_col=self.station_id_col,
+            distance_threshold=self.distance_threshold,
+            min_overlap_days=self.min_overlap_days,
+            n_closest=self.n_closest,
+            start_datetime_col=self.start_datetime_col,
+            end_datetime_col=self.end_datetime_col,
         )
 
         return metadata.filter(

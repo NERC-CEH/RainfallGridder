@@ -219,7 +219,7 @@ WINTER_RAINFALL_24H_DISAG = {
 }
 
 
-def get_stat_disag_fraction_hourly(daily_total: float, dt: datetime.datetime, expected_minute_allignment: int=0):
+def get_stat_disag_fraction_hourly(daily_total: float, dt: datetime.datetime, expected_minute_allignment: int = 0):
     """
     Apply the design storm disaggregation fraction.
 
@@ -239,7 +239,9 @@ def get_stat_disag_fraction_hourly(daily_total: float, dt: datetime.datetime, ex
     month = dt.month
     hour = dt.hour
     minute = dt.minute
-    assert minute == expected_minute_allignment, f"allignment of data not in expected format for 1 hourly min e.g. :00. Currently: {minute}, expected is: {expected_minute_allignment}. Consider changing expected_minute_allignment if this is expected"
+    assert minute == expected_minute_allignment, (
+        f"allignment of data not in expected format for 1 hourly min e.g. :00. Currently: {minute}, expected is: {expected_minute_allignment}. Consider changing expected_minute_allignment if this is expected"
+    )
 
     is_winter = month <= 4 or month >= 11
 
@@ -259,7 +261,9 @@ def get_stat_disag_fraction_hourly(daily_total: float, dt: datetime.datetime, ex
     return season_dict[bin_key][hour]
 
 
-def get_stat_disag_fraction_15min(daily_total: float, dt: datetime.datetime, expected_minute_allignments: tuple=(0, 15, 30, 45)):
+def get_stat_disag_fraction_15min(
+    daily_total: float, dt: datetime.datetime, expected_minute_allignments: tuple = (0, 15, 30, 45)
+):
     """
     Apply the design storm disaggregation fraction at 15mins.
 
@@ -279,7 +283,9 @@ def get_stat_disag_fraction_15min(daily_total: float, dt: datetime.datetime, exp
     month = dt.month
     hour = dt.hour
     minute = dt.minute
-    assert minute in expected_minute_allignments, f"allignment of data not in expected format for 15 min e.g. :00, :15, :30, :45. Currently: {dt}, expected is: {expected_minute_allignments}. Consider changing expected_minute_allignments if this is expected"
+    assert minute in expected_minute_allignments, (
+        f"allignment of data not in expected format for 15 min e.g. :00, :15, :30, :45. Currently: {dt}, expected is: {expected_minute_allignments}. Consider changing expected_minute_allignments if this is expected"
+    )
     is_winter = month <= 4 or month >= 11
 
     season_dict = WINTER_RAINFALL_24H_DISAG if is_winter else SUMMER_RAINFALL_24H_DISAG
@@ -298,8 +304,8 @@ def get_stat_disag_fraction_15min(daily_total: float, dt: datetime.datetime, exp
 
     season_dict_15min = interpolate_profile_to_15min(season_dict[bin_key])
     # Get segment of hour returns 0, 1, 2, 3 for :00, :15, :30, :45
-    segment = minute//15  # TODO: test with different resolutions
-    return season_dict_15min[hour*4 + segment]
+    segment = minute // 15  # TODO: test with different resolutions
+    return season_dict_15min[hour * 4 + segment]
 
 
 def interpolate_profile_to_15min(profile_24):

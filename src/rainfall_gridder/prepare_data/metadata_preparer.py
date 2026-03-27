@@ -85,9 +85,7 @@ def add_completeness_to_metadata(
 
 
 def check_col_content_is_identical(metadata, col):
-    assert len(metadata[col].unique()) == 1, (
-        f"Not all values in {col} are identical: '{metadata[col].unique()}'"
-    )
+    assert len(metadata[col].unique()) == 1, f"Not all values in {col} are identical: '{metadata[col].unique()}'"
 
 
 def combine_metadata_col_contents(metadata, col):
@@ -114,9 +112,7 @@ class MetadataMerger:
         for col in self.cols_to_check_identical:
             check_col_content_is_identical(self.metadata, col)
 
-    def merge_group_metadata(
-        self, group_name, group_name_col, min_datetime, max_datetime, completeness_col
-    ):
+    def merge_group_metadata(self, group_name, group_name_col, min_datetime, max_datetime, completeness_col):
         combined_data = {}
         combined_data[group_name_col] = group_name
         for col in self.cols_to_combine:

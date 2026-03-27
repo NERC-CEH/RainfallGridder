@@ -1,7 +1,11 @@
 import numpy as np
 import xarray as xr
 import datetime
-from rainfall_gridder.generate_grids.stat_disag_fraction import SUMMER_RAINFALL_24H_DISAG, WINTER_RAINFALL_24H_DISAG, interpolate_profile_to_15min
+from rainfall_gridder.generate_grids.stat_disag_fraction import (
+    SUMMER_RAINFALL_24H_DISAG,
+    WINTER_RAINFALL_24H_DISAG,
+    interpolate_profile_to_15min,
+)
 
 
 # ── Build lookup array once at module level ──────────────────────────────────
@@ -17,22 +21,26 @@ def _build_lookup_array(season_dict: dict) -> np.ndarray:
 def _build_lookup_array_15min(season_dict: dict) -> np.ndarray:
     """Returns shape (5, 96) array — axes: [bin_idx, 15min_step]"""
     hourly = _build_lookup_array(season_dict)  # (5, 24)
-    return np.array(
-        [interpolate_profile_to_15min(row) for row in hourly], dtype=np.float64
-    )  # (5, 96)
+    return np.array([interpolate_profile_to_15min(row) for row in hourly], dtype=np.float64)  # (5, 96)
 
 
 # Shape: (2, 5, 24)
-DISAG_LOOKUP_1H = np.stack([
-    _build_lookup_array(SUMMER_RAINFALL_24H_DISAG),
-    _build_lookup_array(WINTER_RAINFALL_24H_DISAG),
-], axis=0)
+DISAG_LOOKUP_1H = np.stack(
+    [
+        _build_lookup_array(SUMMER_RAINFALL_24H_DISAG),
+        _build_lookup_array(WINTER_RAINFALL_24H_DISAG),
+    ],
+    axis=0,
+)
 
 # Shape: (2, 5, 96)
-DISAG_LOOKUP_15MIN = np.stack([
-    _build_lookup_array_15min(SUMMER_RAINFALL_24H_DISAG),
-    _build_lookup_array_15min(WINTER_RAINFALL_24H_DISAG),
-], axis=0)
+DISAG_LOOKUP_15MIN = np.stack(
+    [
+        _build_lookup_array_15min(SUMMER_RAINFALL_24H_DISAG),
+        _build_lookup_array_15min(WINTER_RAINFALL_24H_DISAG),
+    ],
+    axis=0,
+)
 
 # Bin edges for np.digitize — right=True means: <=1 → 0, <=5 → 1, etc.
 _BIN_EDGES = np.array([1, 5, 10, 20])
@@ -92,9 +100,7 @@ def get_stat_disag_fraction_15min_grid(
     Vectorised 15-min version of get_stat_disag_fraction_15min.
     Operates on the entire 2D grid at once.
     """
-    assert dt.minute % 15 == 0, (
-        f"Expected 15-min aligned timestamp, got minute={dt.minute}"
-    )
+    assert dt.minute % 15 == 0, f"Expected 15-min aligned timestamp, got minute={dt.minute}"
 
     values = daily_total_grid.values  # (y, x)
 

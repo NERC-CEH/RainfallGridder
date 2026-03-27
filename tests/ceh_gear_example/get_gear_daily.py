@@ -20,8 +20,8 @@ def coerse_data_into_haduk_format(data, offset):
     """
     Quick fix for coersing data to have same grid as HADUK.
     """
-    data = data.assign_coords(x=(data['x'] + offset))
-    data = data.assign_coords(y=(data['y'] + offset))
+    data = data.assign_coords(x=(data["x"] + offset))
+    data = data.assign_coords(y=(data["y"] + offset))
     return data
 
 
@@ -36,9 +36,7 @@ def get_gear_daily():
         fdri_fs, path="geardaily/GB/geardaily_fulloutput_yearly_100km_chunks.zarr"
     )
 
-    return xr.open_zarr(
-        gear_daily_zstore, decode_times=True, decode_cf=True
-    )  # 310 GB worth of data
+    return xr.open_zarr(gear_daily_zstore, decode_times=True, decode_cf=True)  # 310 GB worth of data
 
 
 def get_gear_hourly():
@@ -48,8 +46,6 @@ def get_gear_hourly():
         anon=True,
         endpoint_url="https://fdri-o.s3-ext.jc.rl.ac.uk",
     )
-    gear_hourly_zstore = zarr.storage.FsspecStore(
-        fdri_fs, path="gearhrly/gearhrly_15day_100km_chunks.zarr"
-    )
+    gear_hourly_zstore = zarr.storage.FsspecStore(fdri_fs, path="gearhrly/gearhrly_15day_100km_chunks.zarr")
 
     return xr.open_zarr(gear_hourly_zstore, decode_times=True, decode_cf=True)

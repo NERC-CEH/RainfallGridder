@@ -26,9 +26,7 @@ class GaugeVsGriddedCorrelator:
         TODO: make sure the combining of gauge name is done in order i.e. 1-2 not 2-1
         """
         # filter to the single station ID
-        self.gauge_data = gauge_data.filter(pl.col(station_id_col) == station_id).sort(
-            by=gauge_data_time_col
-        )
+        self.gauge_data = gauge_data.filter(pl.col(station_id_col) == station_id).sort(by=gauge_data_time_col)
         self.gauge_metadata = metadata.filter(pl.col(station_id_col) == station_id)
         self.nearest_gridded_daily = get_nearest_grid_cell(
             nearest_gridded_daily,
@@ -54,7 +52,7 @@ class GaugeVsGriddedCorrelator:
                 "DATE_TIME",
                 every="1d",
                 offset=f"{self.rainfall_offset_hours}h",
-                label='left',
+                label="left",
             )
             .agg(pl.col(self.gauge_data_col).sum())
         )
