@@ -4,9 +4,9 @@
 
 Python package for interpolating rainfall data onto a regular grid.
 
-* GitHub: https://github.com/thomasjkeel/RainfallGridder/
+* Codeberg: https://codeberg.org/thomasjkeel/RainfallGridder/
 * PyPI package: https://pypi.org/project/RainfallGridder/
-* Created by: **[Tom Keel](None)** | GitHub https://github.com/thomasjkeel | PyPI https://pypi.org/user/thomasjkeel/
+* Created by: **[Tom Keel](None)** | Codeberg https://codeberg.org/thomasjkeel | PyPI https://pypi.org/user/thomasjkeel/
 * Free software: MIT License
 
 ## Features
@@ -15,15 +15,15 @@ Python package for interpolating rainfall data onto a regular grid.
 
 ## Documentation
 
-Documentation is built with [Zensical](https://zensical.org/) and deployed to GitHub Pages.
+Documentation is built with [Zensical](https://zensical.org/) and deployed to Codeberg Pages.
 
-[//]: # (* **Live site:** https://thomasjkeel.github.io/rainfall_gridder/)
+[//]: # (* **Live site:** https://thomasjkeel.codeberg.io/RainfallGridder/)
 * **Preview locally:** `just docs-serve` (serves at http://localhost:8000)
 * **Build:** `just docs-build`
 
 API documentation is auto-generated from docstrings using [mkdocstrings](https://mkdocstrings.github.io/).
 
-Docs deploy automatically on push to `main` via GitHub Actions. To enable this, go to your repo's Settings > Pages and set the source to **GitHub Actions**.
+Docs deploy automatically on push to `main` via Codeberg Actions. To enable this, go to your repo's Settings > Pages and set the source to **Codeberg Actions**.
 
 ## Development
 
@@ -31,8 +31,8 @@ To set up for local development:
 
 ```bash
 # Clone your fork
-git clone git@github.com:your_username/rainfall-gridder.git
-cd rainfall-gridder
+git clone git@codeberg.org:your_username/RainfallGridder.git
+cd RainfallGridder
 
 # Install in editable mode with live updates
 uv tool install --editable .
