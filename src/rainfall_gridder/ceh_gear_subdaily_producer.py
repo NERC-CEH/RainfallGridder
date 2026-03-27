@@ -11,8 +11,6 @@ from .stat_disag_fraction import (
 from .alt_stat_diag_frac import get_stat_disag_fraction_1h_grid, get_stat_disag_fraction_15min_grid
 
 MAX_DISTANCE_TO_GAUGE_M = 50000
-RAINFALL_NAME = "rainfall"
-
 
 class CEHGEARSubDailyProducer:
     def __init__(
@@ -292,7 +290,7 @@ class CEHGEARSubDailyProducer:
         land_mask: xr.DataArray,
         one_day_gridded_daily: xr.Dataset,
         gridded_rainfall_col: str,
-        output_rainfall_name: str = RAINFALL_NAME,
+        output_rainfall_name: str = "rainfall",
     ):
         # 1. Get coord grids
         x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(
