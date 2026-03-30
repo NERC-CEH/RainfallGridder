@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 NEAREST_GRID_CELL_TOLERANCE_M = 1000  # metres
