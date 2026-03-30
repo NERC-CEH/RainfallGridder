@@ -13,7 +13,6 @@ def add_start_and_end_dates_to_metadata(
         Timeseries data with ID and date_time columns
     metadata :
         Metadata with ID column
-
     station_id_col :
         Column with ID
     date_time_col :
@@ -64,7 +63,9 @@ def add_completeness_to_metadata(
 
     # Aggregate start, end, and actual count per station
     completeness_summary = data.group_by(station_id_col).agg(
-        [pl.col("start_date"), pl.col("end_date"), pl.count(date_time_col).alias("time_steps")]
+        [pl.col(date_time_col).min().alias("start_date"),
+         pl.col(date_time_col).max().alias("end_date"),
+         pl.count(date_time_col).alias("time_steps")]
     )
 
     # Compute expected steps and completeness using total_minutes()
