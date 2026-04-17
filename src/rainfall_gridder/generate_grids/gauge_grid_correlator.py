@@ -3,7 +3,7 @@ import scipy.stats
 import xarray as xr
 
 from rainfall_gridder.prepare_data.metadata_preparer import GaugeVsGriddedRainfallMatcher
-from rainfall_gridder.utils import get_nearest_grid_cell
+from rainfall_gridder.utils.spatial_utils import get_nearest_grid_cell
 
 
 class GaugeVsGriddedCorrelator:
@@ -15,9 +15,12 @@ class GaugeVsGriddedCorrelator:
         station_id: str,
         gauge_data_col: str,
         gridded_data_col: str,
+        date_time_col: str,
         start_datetime_col: str,
         end_datetime_col: str,
         station_id_col: str,
+        easting_col: str,
+        northing_col: str,
         rainfall_offset_hours: int,
         gauge_data_time_col: str = "DATE_TIME",
         aggregate_gauge_to_daily: bool = True,
@@ -30,16 +33,18 @@ class GaugeVsGriddedCorrelator:
         self.gauge_metadata = metadata.filter(pl.col(station_id_col) == station_id)
         self.nearest_gridded_daily = get_nearest_grid_cell(
             nearest_gridded_daily,
-            easting=self.gauge_metadata["EASTING"][0],
-            northing=self.gauge_metadata["NORTHING"][0],
+            easting=self.gauge_metadata[easting_col][0],
+            northing=self.gauge_metadata[northing_col][0],
         )
         self.station_id = station_id
         self.gauge_data_col = gauge_data_col
         self.gridded_data_col = gridded_data_col
+        self.date_time_col = date_time_col
         self.start_datetime_col = start_datetime_col
         self.end_datetime_col = end_datetime_col
         self.station_id_col = station_id_col
         self.gauge_data_time_col = gauge_data_time_col
+        
         self.rainfall_offset_hours = rainfall_offset_hours
         if aggregate_gauge_to_daily:
             self.gauge_data = self._aggregate_gauge_subdaily_to_daily()
@@ -49,7 +54,7 @@ class GaugeVsGriddedCorrelator:
         return (
             self.gauge_data.drop_nulls()
             .group_by_dynamic(
-                "DATE_TIME",
+                self.date_time_col,
                 every="1d",
                 offset=f"{self.rainfall_offset_hours}h",
                 label="left",
