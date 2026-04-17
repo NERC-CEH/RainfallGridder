@@ -13,7 +13,15 @@ def calculate_gauge_to_grid_centre_distance(x_grid_centre, y_grid_centre, gauge_
     return np.sqrt((x_grid_centre - gauge_x) ** 2 + (y_grid_centre - gauge_y) ** 2)
 
 
-def crs_to_crs(df: pl.DataFrame, crs_in: int | str, crs_out: int | str, east_west_col_in: str, north_south_col_in: str, east_west_col_out: str, north_south_col_out: str) -> pl.DataFrame:
+def crs_to_crs(
+    df: pl.DataFrame,
+    crs_in: int | str,
+    crs_out: int | str,
+    east_west_col_in: str,
+    north_south_col_in: str,
+    east_west_col_out: str,
+    north_south_col_out: str,
+) -> pl.DataFrame:
     """
     Convert a dataframe from one crs into another
 
@@ -51,7 +59,7 @@ def get_nearest_grid_cell(
     data: xr.Dataset,
     easting: int | float,
     northing: int | float,
-    tolerance: int=NEAREST_GRID_CELL_TOLERANCE_M,
+    tolerance: int = NEAREST_GRID_CELL_TOLERANCE_M,
 ) -> xr.Dataset:
     # Should this select the 2*2 grid cells surrounding (in case on edge of a single cell)?
     return data.sel(

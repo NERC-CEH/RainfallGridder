@@ -1,6 +1,6 @@
 import polars as pl
-import xarray as xr
 import scipy.stats
+import xarray as xr
 
 from rainfall_gridder.prepare_data.metadata_preparer import GaugeVsGriddedRainfallMatcher
 from rainfall_gridder.utils import get_nearest_grid_cell

@@ -1,12 +1,13 @@
+import datetime
+
 import numpy as np
 import xarray as xr
-import datetime
+
 from rainfall_gridder.generate_grids.stat_disag_fraction import (
     SUMMER_RAINFALL_24H_DISAG,
     WINTER_RAINFALL_24H_DISAG,
     interpolate_profile_to_15min,
 )
-
 
 # ── Build lookup array once at module level ──────────────────────────────────
 # Bin order matches np.digitize bins below: [<=1, <=5, <=10, <=20, >20]

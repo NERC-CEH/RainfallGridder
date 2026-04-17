@@ -63,9 +63,11 @@ def add_completeness_to_metadata(
 
     # Aggregate start, end, and actual count per station
     completeness_summary = data.group_by(station_id_col).agg(
-        [pl.col(date_time_col).min().alias("start_date"),
-         pl.col(date_time_col).max().alias("end_date"),
-         pl.count(date_time_col).alias("time_steps")]
+        [
+            pl.col(date_time_col).min().alias("start_date"),
+            pl.col(date_time_col).max().alias("end_date"),
+            pl.count(date_time_col).alias("time_steps"),
+        ]
     )
 
     # Compute expected steps and completeness using total_minutes()
@@ -131,7 +133,7 @@ class MetadataMerger:
                 try:
                     check_col_content_is_identical(self.metadata, col)
                     combined_data[col] = self.metadata[col][0]
-                except AssertionError as ae:
+                except AssertionError:
                     combined_data[col] = None
 
         return pl.DataFrame(combined_data)
