@@ -13,7 +13,9 @@ def build_output_path(
     """
     TODO: does the file_path need start and end date?
     """
-    return base_dir / f"{id_col_name}={station_id}/data*{suffix}"
+    if not isinstance(base_dir, Path):
+        base_dir = Path(base_dir)
+    return base_dir / f"{id_col_name}={station_id}" / f"*{suffix}"
 
 
 def calculate_change_points(stations_in_same_location: pl.DataFrame, station_id_col: str) -> pl.DataFrame:
