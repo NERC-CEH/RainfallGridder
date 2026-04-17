@@ -84,13 +84,7 @@ class RainGaugeSegmentCombiner:
         return calculate_change_points(self.metadata, self.station_id_col)
 
     def _get_combined_station_col_name(self, station_id_col):
-        return "-".join(str(int(station_id)) for station_id in self.metadata[station_id_col].unique().to_list())
-
-    def _convert_station_ids_to_str(self, station_ids):
-        """
-        Converts a list or iterable of station IDs (floats/ints) to strings.
-        """
-        return [str(int(s_id)) for s_id in station_ids]
+        return "-".join(str(station_id) for station_id in self.metadata[station_id_col].unique().to_list())
 
     def loop_through_and_merge_data(
         self,
@@ -102,7 +96,6 @@ class RainGaugeSegmentCombiner:
         combined_data = pl.DataFrame()
 
         for s_date, e_date, station_ids in self.change_points.iter_rows():
-            station_ids = self._convert_station_ids_to_str(station_ids)
             station_ids_cols = [date_time_col] + station_ids
 
             segment_rows = self.pivoted_gauge_data.filter(pl.col(date_time_col) >= s_date).filter(
