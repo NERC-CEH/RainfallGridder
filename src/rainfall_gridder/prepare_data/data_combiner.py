@@ -171,7 +171,7 @@ class GaugeVsGriddedRainfallMatcher:
         """
         return segment_rows_daily.join(
             gridded_daily,
-            on="DATE_TIME",
+            on=self.date_time_col,
         )
 
     def find_closest_gauge_per_day(
@@ -199,19 +199,6 @@ class GaugeVsGriddedRainfallMatcher:
             pl.col(self.date_time_col).alias("interval_start"),
             (pl.col(self.date_time_col) + pl.duration(days=1)).alias("interval_end"),
         )
-        ## OLD MEMORY INTENSIVE JOIN
-        # joined = (
-        #     segment_rows.join(daily_with_closest, how="cross")
-        #     .filter(
-        #         (pl.col("DATE_TIME") >= pl.col("interval_start"))
-        #         & (pl.col("DATE_TIME") < pl.col("interval_end"))
-        #     )
-        #     .select(
-        #         "DATE_TIME",
-        #         *self.gauge_station_ids,
-        #         "closest_gauge",
-        #     )
-        # )
         joined = segment_rows.join_where(
             daily_with_closest,
             (pl.col(self.date_time_col) >= pl.col("interval_start")) & (pl.col(self.date_time_col) < pl.col("interval_end")),
