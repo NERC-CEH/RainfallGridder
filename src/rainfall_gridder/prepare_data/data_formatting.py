@@ -2,10 +2,7 @@ import polars as pl
 
 # NEGATIVE VALUES SET TO NULL
 data_w_no_nulls = gauge_data.with_columns(
-    pl.when(pl.col(PRECIPITATION_COL) < 0)
-    .then(None)
-    .otherwise(pl.col(PRECIPITATION_COL))
-    .alias(PRECIPITATION_COL)
+    pl.when(pl.col(PRECIPITATION_COL) < 0).then(None).otherwise(pl.col(PRECIPITATION_COL)).alias(PRECIPITATION_COL)
 )
 
 
