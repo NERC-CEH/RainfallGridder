@@ -241,7 +241,9 @@ def get_stat_disag_fraction_hourly(daily_total: float, dt: datetime.datetime, ex
     hour = dt.hour
     minute = dt.minute
     assert minute == expected_minute_allignment, (
-        f"allignment of data not in expected format for 1 hourly min e.g. :00. Currently: {minute}, expected is: {expected_minute_allignment}. Consider changing expected_minute_allignment if this is expected"
+        f"allignment of data not in expected format for 1 hourly min e.g. :00.\
+            Currently: {minute}, expected is: {expected_minute_allignment}.\
+            Consider changing expected_minute_allignment if this is expected"
     )
 
     is_winter = month <= 4 or month >= 11
@@ -285,7 +287,9 @@ def get_stat_disag_fraction_15min(
     hour = dt.hour
     minute = dt.minute
     assert minute in expected_minute_allignments, (
-        f"allignment of data not in expected format for 15 min e.g. :00, :15, :30, :45. Currently: {dt}, expected is: {expected_minute_allignments}. Consider changing expected_minute_allignments if this is expected"
+        f"allignment of data not in expected format for 15 min e.g. :00, :15, :30, :45.\
+            Currently: {dt}, expected is: {expected_minute_allignments}.\
+            Consider changing expected_minute_allignments if this is expected"
     )
     is_winter = month <= 4 or month >= 11
 
