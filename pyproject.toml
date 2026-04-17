@@ -23,7 +23,6 @@ dependencies = [
     "rich",
     "fsspec",
     "s3fs",
-    "oracledb",
     "polars",
     "altair",
     "xarray",
