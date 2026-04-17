@@ -69,9 +69,9 @@ def chess_rainfall_metadata() -> pl.DataFrame:
 def chess_rainfall_metadata_w_completeness() -> pl.DataFrame:
     data = pl.read_parquet("test_data/chess_rainfall_data.parquet")
     metadata = pl.read_parquet("test_data/chess_rainfall_metadata.parquet")
-    return metadata_preparer.add_completeness_to_metadata(data, metadata,
-                                                                    station_id_col='station_id',
-                                                                    date_time_col='date_time')
+    return metadata_preparer.add_completeness_to_metadata(
+        data, metadata, station_id_col="station_id", date_time_col="date_time"
+    )
 
 
 @pytest.fixture
