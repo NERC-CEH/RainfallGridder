@@ -56,6 +56,8 @@ def add_completeness_to_metadata(
         Metadata with completeness column
 
     """
+    # 1. Check if there are duplicates in the station IDs.
+    check_duplicates_in_metadata(metadata, cols_to_check=station_id_col)
 
     metadata = add_start_and_end_dates_to_metadata(
         data, metadata, station_id_col=station_id_col, date_time_col=date_time_col
@@ -87,12 +89,23 @@ def add_completeness_to_metadata(
     return metadata.join(completeness_summary[[station_id_col, "completeness"]], on=station_id_col)
 
 
-def check_col_content_is_identical(metadata, col):
+def check_col_content_is_identical(metadata: pl.DataFrame, col: str):
     assert len(metadata[col].unique()) == 1, f"Not all values in {col} are identical: '{metadata[col].unique()}'"
 
 
-def combine_metadata_col_contents(metadata, col):
+def combine_metadata_col_contents(metadata: pl.DataFrame, col: str) -> str:
     return "-".join(str(row_val) for row_val in metadata[col].unique().to_list())
+
+
+def check_duplicates_in_metadata(metadata: pl.DataFrame, cols_to_check: str | list):
+    if isinstance(cols_to_check, str):
+        cols_to_check = [cols_to_check]
+    for col in cols_to_check:
+        duplicated_cols = metadata.filter(pl.col(col).is_duplicated())
+        if duplicated_cols.height > 0:
+            raise ValueError(
+                f"Cannot continue as the metadata contains duplicates for the column: '{col}' and values: `{duplicated_cols[col].unique().to_list()}`. Please check those rows and remove or rename them."
+            )
 
 
 class MetadataMerger:

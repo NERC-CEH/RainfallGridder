@@ -201,7 +201,8 @@ class GaugeVsGriddedRainfallMatcher:
         )
         joined = segment_rows.join_where(
             daily_with_closest,
-            (pl.col(self.date_time_col) >= pl.col("interval_start")) & (pl.col(self.date_time_col) < pl.col("interval_end")),
+            (pl.col(self.date_time_col) >= pl.col("interval_start"))
+            & (pl.col(self.date_time_col) < pl.col("interval_end")),
         ).select(
             self.date_time_col,
             *self.gauge_station_ids,

@@ -42,7 +42,7 @@ class GaugeVsGriddedCorrelator:
         self.start_datetime_col = start_datetime_col
         self.end_datetime_col = end_datetime_col
         self.station_id_col = station_id_col
-        
+
         self.rainfall_offset_hours = rainfall_offset_hours
         if aggregate_gauge_to_daily:
             self.gauge_data = self._aggregate_gauge_subdaily_to_daily()
