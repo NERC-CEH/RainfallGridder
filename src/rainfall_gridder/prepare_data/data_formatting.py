@@ -7,21 +7,18 @@ def set_negative_precip_values_to_none(precip_data: pl.DataFrame, precip_col: st
 
     Parameters
     ----------
-    precip_data: 
+    precip_data:
         Data with precipitation column
     precip_col:
         Name of precipitation column
-    
+
     Returns
     -------
     data_wo_non_neg:
         Data without non-negative precipitation values
     """
     return precip_data.with_columns(
-        pl.when(pl.col(precip_col) < 0)
-        .then(None)
-        .otherwise(pl.col(precip_col))
-        .alias(precip_col)
+        pl.when(pl.col(precip_col) < 0).then(None).otherwise(pl.col(precip_col)).alias(precip_col)
     )
 
 
@@ -43,9 +40,7 @@ def group_metadata_by_station_locations(metadata: pl.DataFrame, easting_col: str
     metadata_w_groupIDs:
         Metadata with station group ID column
     """
-    return metadata.with_columns(
-        pl.struct(easting_col, northing_col).rank(method="dense").alias("station_group_id")
-    )
+    return metadata.with_columns(pl.struct(easting_col, northing_col).rank(method="dense").alias("station_group_id"))
 
 
 def add_blank_file_path_to_metadata(metadata: pl.DataFrame) -> pl.DataFrame:
