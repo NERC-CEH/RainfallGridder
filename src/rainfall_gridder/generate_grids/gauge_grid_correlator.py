@@ -2,7 +2,7 @@ import polars as pl
 import scipy.stats
 import xarray as xr
 
-from rainfall_gridder.prepare_data.metadata_preparer import GaugeVsGriddedRainfallMatcher
+from rainfall_gridder.prepare_data.data_combiner import GaugeVsGriddedRainfallMatcher
 from rainfall_gridder.utils.spatial_utils import get_nearest_grid_cell
 
 
