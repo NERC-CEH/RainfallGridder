@@ -64,7 +64,10 @@ class GaugeVsGriddedCorrelator:
         s_date = self.gauge_metadata[self.start_datetime_col][0]
         e_date = self.gauge_metadata[self.end_datetime_col][0]
         gauge_gridded_matcher = GaugeVsGriddedRainfallMatcher(
-            [self.gauge_data_col], output_col_name="", rainfall_offset_hours=self.rainfall_offset_hours
+            [self.gauge_data_col],
+            output_col_name="",
+            rainfall_offset_hours=self.rainfall_offset_hours,
+            date_time_col=self.date_time_col,
         )
         nearest_gridded_daily_cell_df = gauge_gridded_matcher.prepare_gridded_daily(
             self.nearest_gridded_daily,
