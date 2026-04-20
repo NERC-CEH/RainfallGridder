@@ -30,6 +30,7 @@ dependencies = [
     "matplotlib",
     "hvplot",
     "pyarrow",
+    "pydantic",
     "pyproj",
     "rainfallqc",
     "scipy>=1.17.1",
