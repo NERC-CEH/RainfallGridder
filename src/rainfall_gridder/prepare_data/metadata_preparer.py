@@ -94,7 +94,7 @@ def check_col_content_is_identical(metadata: pl.DataFrame, col: str):
 
 
 def combine_metadata_col_contents(metadata: pl.DataFrame, col: str) -> str:
-    return "-".join(str(row_val) for row_val in sorted(metadata[col].unique().to_list()))
+    return "-".join(str(row_val) for row_val in sorted(metadata[col].unique().to_list())) #test
 
 
 def check_duplicates_in_metadata(metadata: pl.DataFrame, cols_to_check: str | list):
