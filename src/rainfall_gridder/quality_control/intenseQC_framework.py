@@ -1,8 +1,8 @@
 from rainfallqc import (
     comparison_checks,
-    timeseries_checks,
     gauge_checks,
     neighbourhood_checks,
+    timeseries_checks,
 )
 
 intenseqc_framework = {

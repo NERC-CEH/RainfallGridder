@@ -1,14 +1,65 @@
 import numpy as np
+import polars as pl
 import xarray as xr
+from pyproj import Transformer
 
 NEAREST_GRID_CELL_TOLERANCE_M = 1000  # metres
+
+
+def calculate_gauge_to_grid_centre_distance(x_grid_centre, y_grid_centre, gauge_x, gauge_y):
+    """
+    Calculate distance between a grid square centre and a gauge
+    """
+    return np.sqrt((x_grid_centre - gauge_x) ** 2 + (y_grid_centre - gauge_y) ** 2)
+
+
+def crs_to_crs(
+    df: pl.DataFrame,
+    crs_in: int | str,
+    crs_out: int | str,
+    east_west_col_in: str,
+    north_south_col_in: str,
+    east_west_col_out: str,
+    north_south_col_out: str,
+) -> pl.DataFrame:
+    """
+    Convert a dataframe from one crs into another
+
+    Parameters
+    ##########
+    df:
+        Data to be converted with east and north coordinates
+    crs_in:
+        Coordinate reference system from
+    crs_out:
+        Coordinate reference system to
+    east_west_col_in:
+        Input east/west coordinate column (e.g. longitude)
+    north_south_col_in:
+        Input north/south coordinate column (e.g. latitude)
+    east_west_col_out:
+        Output east/west coordinate column (e.g. Easting)
+    north_south_col_out:
+        Output north/south coordinate column (e.g. South)
+
+    Returns
+    #######
+    df: dataframe
+        Data with new crs
+    """
+    transformer = Transformer.from_crs(f"EPSG:{crs_in}", f"EPSG:{crs_out}", always_xy=True)
+    df[east_west_col_out], df[north_south_col_out] = transformer.transform(
+        df[east_west_col_in].values, df[north_south_col_in].values
+    )
+
+    return df
 
 
 def get_nearest_grid_cell(
     data: xr.Dataset,
     easting: int | float,
     northing: int | float,
-    tolerance=NEAREST_GRID_CELL_TOLERANCE_M,
+    tolerance: int = NEAREST_GRID_CELL_TOLERANCE_M,
 ) -> xr.Dataset:
     # Should this select the 2*2 grid cells surrounding (in case on edge of a single cell)?
     return data.sel(
@@ -17,10 +68,3 @@ def get_nearest_grid_cell(
         method="nearest",
         tolerance=tolerance,
     )
-
-
-def calculate_gauge_to_grid_centre_distance(x_grid_centre, y_grid_centre, gauge_x, gauge_y):
-    """
-    Calculate distance between a grid square centre and a gauge
-    """
-    return np.sqrt((x_grid_centre - gauge_x) ** 2 + (y_grid_centre - gauge_y) ** 2)
