@@ -1,21 +1,18 @@
-from rainfall_gridder.config.schema import WorkflowConfig, MetadataConfig, DataConfig, ColumnConfig
+from pathlib import Path
+
+def get_ceh_gear_15m_CEH_GEAR_based_kwargs():
+    return {
+        "output_dir": Path("outputs"),
+        "rainfall_offset_hours": 10,
+        "n_hours": 96,
+        "n_months_required": 0.5, #TODO: change
+    }
 
 
-# Default / local run
-DEFAULT_CONFIG = WorkflowConfig(
-    metadata=MetadataConfig(path="data/metadata.csv"),
-    data=DataConfig(path="data/data.csv"),
-)
-
-
-# Example: alternative column naming
-CEH_GEAR_CONFIG = WorkflowConfig(
-    metadata=MetadataConfig(
-        path="data/metadata_alt.csv",
-        columns=ColumnConfig(station_id_col="STN_ID")
-    ),
-    data=DataConfig(
-        path="data/data_alt.csv",
-        columns=ColumnConfig(date_time_col="TIMESTAMP")
-    ),
-)
+def get_ceh_gear_15m_HadUK_Grid_based_kwargs():
+    return {
+        "output_dir": Path("outputs"),
+        "rainfall_offset_hours": 9,
+        "n_hours": 96,
+        "n_months_required": 0.5, #TODO: change
+    }

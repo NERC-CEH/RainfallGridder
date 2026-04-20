@@ -1,20 +1,8 @@
-from dataclasses import dataclass, field
-
-# STATION_ID_COL = "station_id"
-# DATE_TIME_COL = "date_time"
-# START_DATE_COL = "start_date"
-# END_DATE_COL = "end_date"
-# COMPETENESS_COL = "completeness"
-# PRECIPITATION_COL = "precipitation"
-# RAINFALL_OFFSET_HOURS = 10 # GEAR
-# N_HOURS = 96 # 96 for 15 mins
-# N_MONTHS_REQUIRED = 0.5 # for testing
-# OUTPUT_DIR = Path("outputs")
-# PARTITION_BY_COLUMNS = [STATION_ID_COL]
+from pathlib import Path
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class ColumnConfig:
+class ColumnConfig(BaseModel):
     station_id_col: str = "station_id"
     date_time_col: str = "date_time"
     start_date_col: str = "start_date"
@@ -23,19 +11,18 @@ class ColumnConfig:
     precipitation_col: str = "precipitation"
 
 
-@dataclass
-class MetadataConfig:
-    path: str
-    columns: ColumnConfig = field(default_factory=ColumnConfig)
+class MetadataConfig(BaseModel):
+    path: Path
 
 
-@dataclass
-class DataConfig:
-    path: str
-    columns: ColumnConfig = field(default_factory=ColumnConfig)
+class DataConfig(BaseModel):
+    path: Path
 
 
-@dataclass
-class WorkflowConfig:
+class WorkflowConfig(BaseModel):
     metadata: MetadataConfig
     data: DataConfig
+    output_dir: Path
+    rainfall_offset_hours: int
+    n_hours: int
+    n_months_required: float
