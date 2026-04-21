@@ -26,6 +26,7 @@ dependencies = [
     "polars",
     "altair",
     "xarray",
+    "dask",
     "zarr",
     "matplotlib",
     "hvplot",
