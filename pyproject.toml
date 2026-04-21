@@ -25,7 +25,7 @@ dependencies = [
     "s3fs",
     "polars",
     "altair",
-    "xarray",
+    "xarray[complete]",
     "dask",
     "zarr",
     "matplotlib",
