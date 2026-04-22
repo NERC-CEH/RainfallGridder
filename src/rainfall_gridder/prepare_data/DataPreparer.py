@@ -85,12 +85,10 @@ class DataPreparer:
 
     def _prepare_gridded_rainfall_data(self, gridded_rainfall_data):
         for data_var in ["x", "y", "time", self.gridded_rainfall_col]:
-            assert (
-                data_var in gridded_rainfall_data,
-                f"Expecting data variable: '{data_var}' in gridded rainfall data."
-                f"Please add this variable, or rename its equivalent.",
+            assert data_var in gridded_rainfall_data, (
+                f"Expecting data variable: '{data_var}' in gridded rainfall data. "
+                "Please add this variable, or rename its equivalent."
             )
-
         gridded_rainfall_data = xarray_utils.replace_daily_time_step_hour_with_zero(
             gridded_rainfall_data, time_col="time"
         )
