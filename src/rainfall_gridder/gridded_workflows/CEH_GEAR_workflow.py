@@ -7,6 +7,7 @@ from rainfall_gridder.config.schema import WorkflowConfig, ColumnConfig
 
 from rainfall_gridder.utils import batch_saving_utils
 
+
 def ceh_gear_subdaily_workflow(
     data_path: str, metadata_path: str, columns: dict | ColumnConfig | None = None, **overrides
 ):
@@ -36,8 +37,10 @@ def ceh_gear_subdaily_workflow(
     data, metadata = apply_intenseQC_rulebase(data, metadata, config.output_dir)
 
     # 3. Generate grids
-    all_days = batch_saving_utils.get_all_days(metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col)
-    
+    all_days = batch_saving_utils.get_all_days(
+        metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
+    )
+
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         # batch_results = []
         for time_step in batch_days:
@@ -52,10 +55,5 @@ def ceh_gear_subdaily_workflow(
         # batch_saving_utils.write_to_zarr(config.output_zarr_file, zarr_format=2)
         pass
 
-
-
-
     # 4. Save outputs
     return
-
-
