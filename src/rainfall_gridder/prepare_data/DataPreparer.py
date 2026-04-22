@@ -18,7 +18,8 @@ class DataPreparer:
         end_date_col: str,
         easting_col: str,
         northing_col: str,
-        gridded_data: xr.Dataset,
+        gridded_rainfall_data: xr.Dataset,
+        gridded_rainfall_col: str,
         rainfall_offset_hours: int,
         output_dir: str | Path,
         verbose: bool = False,
@@ -29,6 +30,8 @@ class DataPreparer:
 
         Parameters
         ----------
+        gridded_rainfall_col:
+            Name of rainfall variable in the gridded_rainfall_data
         rainfall_offset_hours:
             First hour of the rainfall day (e.g. 9 if running from 9am to 8.59am)
         output_dir:
@@ -47,9 +50,16 @@ class DataPreparer:
         self.output_dir = output_dir
         self.verbose = verbose
         self.min_n_timesteps = min_n_timesteps
+        self.gridded_rainfall_col = gridded_rainfall_col
+
+        # Prepare data inputs
         self.data = self._prepare_data(data)
         self.metadata = self._prepare_metadata(metadata)
-        self.gridded_data = self._prepare_gridded_data(gridded_data)
+        self.gridded_rainfall_data = self._prepare_gridded_rainfall_data(gridded_rainfall_data)
+        
+        # empty final outputs
+        self.final_data = None
+        self.final_metadata = None
 
     def _remove_duplicates_in_metadata(self, metadata):
 
@@ -74,15 +84,20 @@ class DataPreparer:
         )
         return data_formatting.add_blank_file_path_to_metadata(metadata)
 
-    def _prepare_gridded_data(self, gridded_data):
-        gridded_data = xarray_utils.replace_daily_time_step_hour_with_zero(gridded_data, self.date_time_col)
-        gridded_data = xarray_utils.subset_gridded_data_to_metadata_bounds(
-            gridded_data, self.metadata, self.easting_col, self.northing_col
+    def _prepare_gridded_rainfall_data(self, gridded_rainfall_data):
+        gridded_rainfall_data = xarray_utils.replace_daily_time_step_hour_with_zero(gridded_rainfall_data, self.date_time_col)
+        gridded_rainfall_data = xarray_utils.subset_gridded_data_to_metadata_bounds(
+            gridded_rainfall_data, self.metadata, self.easting_col, self.northing_col
         )
-        return gridded_data
+        return gridded_rainfall_data
 
     def _prepare_data(self):
         return data_formatting.set_negative_precip_values_to_none(self.data, precip_col=self.precipitation_col)
+
+    @classmethod
+    def run(cls, **kwargs)):
+        data_preparer = cls(**kwargs)
+        data_preparer.loop_through_and_make_final_data_and_metadata()
 
     def loop_through_and_make_final_data_and_metadata(self):
         metadata_cols_to_check_identical = [self.easting_col, self.northing_col, "station_group_id", "file_path"]
@@ -113,10 +128,10 @@ class DataPreparer:
                     metadata=metadata_one_group,
                     station_id_col=self.station_id_col,
                 )
-                nearest_gear_daily_cell = spatial_utils.get_nearest_grid_cell(self.gridded_data, easting=metadata_one_group[self.easting_col][0], northing=metadata_one_group[self.easting_col][0])
+                nearest_gear_daily_cell = spatial_utils.get_nearest_grid_cell(self.gridded_rainfall_data, easting=metadata_one_group[self.easting_col][0], northing=metadata_one_group[self.easting_col][0])
                 combined_data = gauge_combiner.loop_through_and_merge_data(nearest_gear_daily_cell,
                                                                         date_time_col=self.date_time_col,
-                                                                        rain_col="rainfall",
+                                                                        rain_col=self.gridded_rainfall_col,
                                                                         rainfall_offset_hours=self.rainfall_offset_hours)
                 station_name = gauge_combiner.combined_station_col_name
 
@@ -168,9 +183,12 @@ class DataPreparer:
         partition_by_columns:
             Columns that decide the partitioning of the output parquet file structure (default is station_id_col)
         """
-        if not partition_by_columns:
+        if partition_by_columns is None:
             partition_by_columns = [self.station_id_col]
-        # final_gauge_data = pl.concat(self.final_gauge_data_list)
+
+        if self.final_data is None:
+            raise RuntimeError("You must call loop_through_and_make_final_data_and_metadata() before save_output()")
+        # final_gauge_data = pl.concat(self.final_data_list)
         # (
         #     final_gauge_data
         #     .sort(self.date_time_col)
@@ -185,6 +203,8 @@ class DataPreparer:
         pass
 
     def save_final_metadata(self) -> None:
+        if self.final_metadata is None:
+            raise RuntimeError("You must call loop_through_and_make_final_data_and_metadata() before save_final_metadata()")
         # final_station_metadata_df = pl.concat(self.final_station_metadata_list, how="diagonal_relaxed")
         # assert len(final_station_metadata_df.filter(pl.col('file_path').is_duplicated())) == 0
         # final_station_metadata_df.write_parquet(self.output_dir / "prepared_metadata.parquet")
