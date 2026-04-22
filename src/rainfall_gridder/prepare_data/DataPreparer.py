@@ -126,7 +126,7 @@ class DataPreparer:
             data_one_group = data_one_group.sort(self.date_time_col).unique()
 
             if len(data_one_group[self.station_id_col].unique()) > 1:
-                print(station_group_id, len(data_one_group[self.station_id_col].unique()))
+                print(f"Group ID: {station_group_id} has {len(data_one_group[self.station_id_col].unique())} members")
                 # create pivot of data
                 data_one_group_pivot = data_one_group.pivot(
                     values=self.precipitation_col, index=self.date_time_col, on=self.station_id_col
@@ -141,7 +141,7 @@ class DataPreparer:
                 nearest_daily_gridded_cell = spatial_utils.get_nearest_grid_cell(
                     self.gridded_rainfall_data,
                     easting=metadata_one_group[self.easting_col][0],
-                    northing=metadata_one_group[self.easting_col][0],
+                    northing=metadata_one_group[self.northing_col][0],
                 )
                 combined_data = gauge_combiner.loop_through_and_merge_data(
                     nearest_daily_gridded_cell,
