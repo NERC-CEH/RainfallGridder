@@ -26,4 +26,4 @@ class WorkflowConfig(BaseModel):
     rainfall_offset_hours: int
     n_hours: int
     n_months_required: float
-    batch_size: int=5
+    batch_size: int = 5
