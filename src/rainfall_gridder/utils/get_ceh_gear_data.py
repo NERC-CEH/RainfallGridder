@@ -9,12 +9,13 @@ def get_uk_mask_gear_coords():
     return gear_daily["rainfall_amount"].notnull()
 
 
-def get_uk_mask_haduk_coords():
+def get_uk_mask_haduk_coords(reverse_coords=True):
     gear_daily = get_gear_daily()
     gear_daily = gear_daily.isel(time=0)
     gear_daily_haduk_coords = coerse_data_into_haduk_format(gear_daily, offset=-500)
-    # Reverse y so increasing not decreasing like CEH-GEAR
-    gear_daily_haduk_coords = gear_daily_haduk_coords.sortby("y", ascending=False)
+    if reverse_coords:
+        # Reverse y so ascending like CEH-GEAR
+        gear_daily_haduk_coords = gear_daily_haduk_coords.sortby("y", ascending=True)
     return gear_daily_haduk_coords["rainfall_amount"].notnull()
 
 
