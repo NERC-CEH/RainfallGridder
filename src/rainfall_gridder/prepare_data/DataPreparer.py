@@ -58,8 +58,8 @@ class DataPreparer:
         self.gridded_rainfall_data = self._prepare_gridded_rainfall_data(gridded_rainfall_data)
         
         # empty final outputs
-        self.final_data = None
-        self.final_metadata = None
+        self.prepared_data = None
+        self.prepared_metadata = None
 
     def _remove_duplicates_in_metadata(self, metadata):
         return metadata.unique(
@@ -98,13 +98,13 @@ class DataPreparer:
         data_preparer = cls(**kwargs)
         if data_preparer.verbose:
             print("Preparing data for gridder")
-        data_preparer.loop_through_and_make_final_data_and_metadata()
+        data_preparer.prepare_data_and_metadata_for_gridding()
         if data_preparer.verbose:
             print(f"Saving data to {cls.output_dir}")
-        data_preparer.save_final_data(partition_by_columns)
-        data_preparer.save_final_metadata()
+        data_preparer.save_prepared_data(partition_by_columns)
+        data_preparer.save_prepared_metadata()
 
-    def loop_through_and_make_final_data_and_metadata(self):
+    def prepare_data_and_metadata_for_gridding(self):
         metadata_cols_to_check_identical = [self.easting_col, self.northing_col, "station_group_id", "file_path"]
         metadata_cols_to_combine = [self.station_id_col, self.station_name_col]
 
@@ -179,11 +179,10 @@ class DataPreparer:
                 final_station_metadata_list.append(merged_metadata.select(metadata_column_order))
             else:
                 final_station_metadata_list.append(metadata_one_group.select(metadata_column_order))
-        self.final_data = pl.concat(final_gauge_data_list)
-        self.final_metadata = pl.concat(final_station_metadata_list)
+        self.prepared_data = pl.concat(final_gauge_data_list)
+        self.prepared_metadata = pl.concat(final_station_metadata_list, how="diagonal_relaxed")
 
-
-    def save_final_data(self, partition_by_columns: list = None) -> None:
+    def save_prepared_data(self, partition_by_columns: list = None) -> None:
         """
         Save data that has been prepared for gridding.
 
@@ -194,28 +193,27 @@ class DataPreparer:
         """
         if partition_by_columns is None:
             partition_by_columns = [self.station_id_col]
+        
+        if self.prepared_data is None:
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_output()")
+        
+        assert len(self.prepared_metadata.filter(pl.col('file_path').is_duplicated())) == 0, "Problem with metadata as duplicate filepaths"
 
-        if self.final_data is None:
-            raise RuntimeError("You must call loop_through_and_make_final_data_and_metadata() before save_output()")
-        # (
-        #     final_gauge_data
-        #     .sort(self.date_time_col)
-        #     .write_parquet(
-        #         self.output_dir / "data",
-        #         partition_by=partition_by_columns,
-        #         overwrite=True
-        #     )
-        # )
-        # if self.verbose:
-        #     print(f"output available at: {self.output_dir / "data/"}")
-        pass
+        # Save partitioned parquet file
+        (
+            self.prepared_data
+            .sort(self.date_time_col)
+            .write_parquet(
+                self.output_dir / "data",
+                partition_by=partition_by_columns,
+            )
+        )
+        if self.verbose:
+            print(f"output available at: {self.output_dir / "data/"}")
 
-    def save_final_metadata(self) -> None:
-        if self.final_metadata is None:
-            raise RuntimeError("You must call loop_through_and_make_final_data_and_metadata() before save_final_metadata()")
-        # final_station_metadata_df = pl.concat(self.final_station_metadata_list, how="diagonal_relaxed")
-        # assert len(final_station_metadata_df.filter(pl.col('file_path').is_duplicated())) == 0
-        # final_station_metadata_df.write_parquet(self.output_dir / "prepared_metadata.parquet")
-        # if self.verbose:
-        #     print(f"output available at: {self.output_dir / "prepared_metadata.parquet"}") 
-        pass
+    def save_prepared_metadata(self) -> None:
+        if self.prepared_metadata is None:
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_final_metadata()")
+        self.prepared_metadata.write_parquet(self.output_dir / "prepared_metadata.parquet")
+        if self.verbose:
+            print(f"output available at: {self.output_dir / "prepared_metadata.parquet"}") 

@@ -31,7 +31,7 @@ def ceh_gear_subdaily_workflow(
 
     # Start workflow
     # 1. Prepare data
-    data, metadata = DataPreparer(config.data, config.metadata, columns.date_time_col)
+    data, metadata = DataPreparer.run(config.data, config.metadata, columns.date_time_col)
 
     # 2. Quality Control
     data, metadata = apply_intenseQC_rulebase(data, metadata, config.output_dir)
