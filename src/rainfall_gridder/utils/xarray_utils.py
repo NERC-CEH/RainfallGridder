@@ -25,7 +25,9 @@ def replace_daily_time_step_hour_with_zero(daily_data: xr.Dataset, date_time_col
     return daily_data.assign_coords(time=replacement_time)
 
 
-def subset_gridded_data_to_metadata_bounds(gridded_data: xr.Dataset, metadata: pl.DataFrame, easting_col: str, northing_col: str) -> xr.Dataset:
+def subset_gridded_data_to_metadata_bounds(
+    gridded_data: xr.Dataset, metadata: pl.DataFrame, easting_col: str, northing_col: str
+) -> xr.Dataset:
     """
     Subset xarray data to bounds of metadata (adds a small buffer of size standard deviation).
 
@@ -45,7 +47,13 @@ def subset_gridded_data_to_metadata_bounds(gridded_data: xr.Dataset, metadata: p
     subset_gridded_data:
         Gridded data subset to easting and northing bounds of metadata
     """
-    return gridded_data.sel(x=slice(metadata[easting_col].min() - metadata[easting_col].std(),
-                   metadata[easting_col].max() + metadata[easting_col].std()),
-            y=slice(metadata[northing_col].min() - metadata[northing_col].std(),
-                   metadata[northing_col].max() + metadata[northing_col].std()))
+    return gridded_data.sel(
+        x=slice(
+            metadata[easting_col].min() - metadata[easting_col].std(),
+            metadata[easting_col].max() + metadata[easting_col].std(),
+        ),
+        y=slice(
+            metadata[northing_col].min() - metadata[northing_col].std(),
+            metadata[northing_col].max() + metadata[northing_col].std(),
+        ),
+    )
