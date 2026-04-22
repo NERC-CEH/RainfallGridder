@@ -2,7 +2,7 @@ from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control import apply_intenseQC_rulebase
 from rainfall_gridder.generate_grids import ceh_gear_subdaily_producer
 
-from rainfall_gridder.config.configs import get_ceh_gear_defaults
+from rainfall_gridder.config.configs import get_ceh_gear_15m_HadUK_Grid_based_kwargs
 from rainfall_gridder.config.schema import WorkflowConfig, ColumnConfig
 
 from rainfall_gridder.utils import batch_saving_utils
@@ -19,7 +19,7 @@ def ceh_gear_subdaily_workflow(
 
     # 2. Build workflow config (NOTE: match schema structure)
     config = WorkflowConfig(
-        **get_ceh_gear_defaults(),
+        **get_ceh_gear_15m_HadUK_Grid_based_kwargs(),
         **overrides,
         data={
             "path": data_path,

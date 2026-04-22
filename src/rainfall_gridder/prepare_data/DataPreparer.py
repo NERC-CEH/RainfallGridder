@@ -84,6 +84,13 @@ class DataPreparer:
         return data_formatting.add_blank_file_path_to_metadata(metadata)
 
     def _prepare_gridded_rainfall_data(self, gridded_rainfall_data):
+        for data_var in ["x", "y", "time", self.gridded_rainfall_col]:
+            assert (
+                data_var in gridded_rainfall_data,
+                f"Expecting data variable: '{data_var}' in gridded rainfall data."
+                f"Please add this variable, or rename its equivalent.",
+            )
+
         gridded_rainfall_data = xarray_utils.replace_daily_time_step_hour_with_zero(
             gridded_rainfall_data, self.date_time_col
         )
@@ -180,7 +187,7 @@ class DataPreparer:
                 metadata_merger = metadata_preparer.MetadataMerger(
                     metadata=metadata_one_group,
                     cols_to_check_identical=[self.easting_col, self.northing_col, "station_group_id", "file_path"],
-                    cols_to_combine=[self.station_id_col, self.station_name_col],
+                    cols_to_combine=[col for col in [self.station_id_col, self.station_name_col] if col],
                     start_date_col=self.start_date_col,
                     end_date_col=self.end_date_col,
                 )
