@@ -107,7 +107,7 @@ class DataPreparer:
             print("Preparing data for gridder")
         data_preparer.prepare_data_and_metadata_for_gridding()
         if data_preparer.verbose:
-            print(f"Saving data to {cls.output_dir}")
+            print(f"Saving data to {data_preparer.output_dir}")
         data_preparer.save_prepared_data(partition_by_columns)
         data_preparer.save_prepared_metadata()
 
@@ -228,11 +228,11 @@ class DataPreparer:
             )
         )
         if self.verbose:
-            print(f"output available at: {self.output_dir / 'data/'}")
+            print(f"prepared gauge data available at: {self.output_dir / 'data/'}")
 
     def save_prepared_metadata(self) -> None:
         if self.prepared_metadata is None:
             raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_final_metadata()")
         self.prepared_metadata.write_parquet(self.output_dir / "prepared_metadata.parquet")
         if self.verbose:
-            print(f"output available at: {self.output_dir / 'prepared_metadata.parquet'}")
+            print(f"prepared gauge metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
