@@ -2,7 +2,7 @@ import polars as pl
 import xarray as xr
 
 
-def replace_daily_time_step_hour_with_zero(daily_data: xr.Dataset, date_time_col: str) -> xr.Dataset:
+def replace_daily_time_step_hour_with_zero(daily_data: xr.Dataset, time_col: str="time") -> xr.Dataset:
     """
     Replace the hour of the daily dataset with 0.
 
@@ -12,8 +12,8 @@ def replace_daily_time_step_hour_with_zero(daily_data: xr.Dataset, date_time_col
     ----------
     daily_data:
         Daily data with date_time_col
-    date_time_col:
-        Date time column
+    time_col:
+        time column (default is 'time')
 
     Returns
     -------
@@ -21,7 +21,7 @@ def replace_daily_time_step_hour_with_zero(daily_data: xr.Dataset, date_time_col
         Daily data with date time with hour 0
 
     """
-    replacement_time = daily_data[date_time_col].to_index().map(lambda t: t.replace(hour=0))
+    replacement_time = daily_data[time_col].to_index().map(lambda t: t.replace(hour=0))
     return daily_data.assign_coords(time=replacement_time)
 
 

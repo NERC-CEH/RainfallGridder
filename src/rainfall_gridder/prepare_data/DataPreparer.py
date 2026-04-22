@@ -92,15 +92,15 @@ class DataPreparer:
             )
 
         gridded_rainfall_data = xarray_utils.replace_daily_time_step_hour_with_zero(
-            gridded_rainfall_data, self.date_time_col
+            gridded_rainfall_data, time_col="time"
         )
         gridded_rainfall_data = xarray_utils.subset_gridded_data_to_metadata_bounds(
             gridded_rainfall_data, self.metadata, self.easting_col, self.northing_col
         )
         return gridded_rainfall_data
 
-    def _prepare_data(self):
-        return data_formatting.set_negative_precip_values_to_none(self.data, precip_col=self.precipitation_col)
+    def _prepare_data(self, data: pl.DataFrame) -> pl.DataFrame:
+        return data_formatting.set_negative_precip_values_to_none(data, precip_col=self.precipitation_col)
 
     @classmethod
     def run(cls, partition_by_columns: list = None, **kwargs):
