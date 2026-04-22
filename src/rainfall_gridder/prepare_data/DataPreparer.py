@@ -62,7 +62,6 @@ class DataPreparer:
         self.final_metadata = None
 
     def _remove_duplicates_in_metadata(self, metadata):
-
         return metadata.unique(
             subset=[self.station_id_col]
         )  # TODO: this would leave wrong coords if it returns first unique
@@ -95,9 +94,15 @@ class DataPreparer:
         return data_formatting.set_negative_precip_values_to_none(self.data, precip_col=self.precipitation_col)
 
     @classmethod
-    def run(cls, **kwargs)):
+    def run(cls, partition_by_columns: list=None, **kwargs):
         data_preparer = cls(**kwargs)
+        if data_preparer.verbose:
+            print("Preparing data for gridder")
         data_preparer.loop_through_and_make_final_data_and_metadata()
+        if data_preparer.verbose:
+            print(f"Saving data to {cls.output_dir}")
+        data_preparer.save_final_data(partition_by_columns)
+        data_preparer.save_final_metadata()
 
     def loop_through_and_make_final_data_and_metadata(self):
         metadata_cols_to_check_identical = [self.easting_col, self.northing_col, "station_group_id", "file_path"]
@@ -148,7 +153,8 @@ class DataPreparer:
 
             # Save data if at least N months worth of non-null record
             if len(data_one_group.drop_nulls()) >= self.min_n_timesteps:
-                print(f'Adding group ID: {station_group_id}')
+                if self.verbose:
+                    print(f'Adding group ID: {station_group_id}')
                 output_file_name = str(data_combiner.build_output_path(base_dir=self.output_dir / "data", id_col_name=self.station_id_col, station_id=station_name))
                 metadata_one_group = metadata_one_group.with_columns(pl.lit(output_file_name).alias("file_path"))
                 data_one_group = data_one_group.select(column_order)
@@ -157,7 +163,8 @@ class DataPreparer:
                 if self.verbose:
                     print(f"{station_name} being ignored as not more than {self.min_n_timesteps} time steps.")
             if len(metadata_one_group) > 1:
-                print('merging metadata')
+                if self.verbose:
+                    print(f"merging metadata of {station_name}")
                 metadata_merger = metadata_preparer.MetadataMerger(metadata=metadata_one_group,
                                                 cols_to_check_identical=metadata_cols_to_check_identical,
                                                 cols_to_combine=metadata_cols_to_combine,
@@ -172,6 +179,8 @@ class DataPreparer:
                 final_station_metadata_list.append(merged_metadata.select(metadata_column_order))
             else:
                 final_station_metadata_list.append(metadata_one_group.select(metadata_column_order))
+        self.final_data = pl.concat(final_gauge_data_list)
+        self.final_metadata = pl.concat(final_station_metadata_list)
 
 
     def save_final_data(self, partition_by_columns: list = None) -> None:
@@ -188,7 +197,6 @@ class DataPreparer:
 
         if self.final_data is None:
             raise RuntimeError("You must call loop_through_and_make_final_data_and_metadata() before save_output()")
-        # final_gauge_data = pl.concat(self.final_data_list)
         # (
         #     final_gauge_data
         #     .sort(self.date_time_col)

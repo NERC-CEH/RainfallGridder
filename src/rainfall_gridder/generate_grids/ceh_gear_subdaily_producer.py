@@ -152,7 +152,7 @@ class CEHGEARSubDailyProducer:
     ) -> xr.DataArray:
         # TODO: put this method into another class
         # Different ways of doing this too
-        if not distance_grid:
+        if distance_grid is None:
             distance_grid = self.calculate_distance_grid(land_mask)
         # Get mask of cells for stat disaggregation (gap filling)
         daily_totals_grid_masked = daily_totals_grid.where(land_mask)
