@@ -128,7 +128,9 @@ class MetadataMerger:
         for col in self.cols_to_check_identical:
             check_col_content_is_identical(self.metadata, col)
 
-    def merge_group_metadata(self, group_name, group_name_col, min_datetime, max_datetime, completeness_col: str="completeness"):
+    def merge_group_metadata(
+        self, group_name, group_name_col, min_datetime, max_datetime, completeness_col: str = "completeness"
+    ):
         combined_data = {}
         combined_data[group_name_col] = group_name
         for col in self.cols_to_combine:
