@@ -3,16 +3,19 @@ import polars as pl
 from rainfallqc.utils import neighbourhood_utils
 
 
-class NearbyGaugeDataLoader:
+class NearbyRainfallDataLoader:
     def __init__(
         self,
         metadata: pl.DataFrame,
         rainfall_data_source: str,
         station_id: str,
+        date_time_col: str,
         start_datetime_col: str,
         end_datetime_col: str,
         station_id_col: str,
         min_overlap_days: int,
+        path_to_rainfall_files: None = None,
+        rainfall_data_pl: None = None,
         distance_threshold: int = 50,
         n_closest: int = 10,
     ):
@@ -28,16 +31,21 @@ class NearbyGaugeDataLoader:
 
         self.rainfall_data_source = rainfall_data_source
         self.station_id = station_id
+        self.date_time_col = date_time_col
         self.start_datetime_col = start_datetime_col
         self.end_datetime_col = end_datetime_col
         self.station_id_col = station_id_col
         self.distance_threshold = distance_threshold
         self.min_overlap_days = min_overlap_days
         self.n_closest = n_closest
+        self.path_to_rainfall_files = path_to_rainfall_files
+        self.rainfall_data_pl = rainfall_data_pl
 
         self.nearby_metadata = self._get_nearby_metadata(metadata)
-        self.nearby_gauge_distances = self._get_nearby_gauge_distances()
+        self.nearby_rain_gauge_distances = self._get_nearby_rain_gauge_distances()
         self.stations_to_load = self.nearby_metadata[self.station_id_col].unique().to_list()
+        self.nearby_rainfall_data = self.load_nearby_rainfall_data()
+        self.nearby_rainfall_pivot_data = self.pivot_nearby_rainfall_data()
 
     def _get_nearby_metadata(self, metadata):
         ten_nearest_neighbour_ids = neighbourhood_utils.get_ids_of_n_nearest_overlapping_neighbouring_gauges(
@@ -56,48 +64,65 @@ class NearbyGaugeDataLoader:
             | (pl.col(self.station_id_col) == self.station_id)
         )
 
-    def _get_nearby_gauge_distances(self):
+    def _get_nearby_rain_gauge_distances(self):
         return neighbourhood_utils.compute_km_distances_from_target_id(
             self.nearby_metadata,
             target_id=self.station_id,
             station_id_col=self.station_id_col,
         )
 
-    def load_nearby_gauge_data(self, path_to_files=None, rainfall_data=None) -> pl.DataFrame:
+    def load_nearby_rainfall_data(self) -> pl.DataFrame:
         if self.rainfall_data_source == "parquet":
-            if path_to_files is None:
+            if self.path_to_rainfall_files is None:
                 raise ValueError("path_to_files must be provided for parquet data source")
-            return self.load_nearby_gauge_data_from_parquet_files(path_to_files)
+            nearby_rainfall_data = self._load_nearby_rainfall_data_from_parquet_files()
 
         elif self.rainfall_data_source == "csv":
-            if path_to_files is None:
+            if self.path_to_rainfall_files is None:
                 raise ValueError("path_to_files must be provided for csv data source")
-            return self.load_nearby_gauge_data_from_csv_files(path_to_files)
+            nearby_rainfall_data = self._load_nearby_rainfall_data_from_csv_files()
 
         elif self.rainfall_data_source == "df":
-            if rainfall_data is None:
+            if self.rainfall_data_pl is None:
                 raise ValueError("rainfall_data must be provided for df data source")
-            return self.load_nearby_gauge_data_from_pl(rainfall_data)
+            nearby_rainfall_data = self._load_nearby_rainfall_data_from_pl(self.rainfall_data_pl)
         else:
             raise ValueError(
                 f"Unsupported data_source: {self.data_source}. Please set this to either 'parquet', 'csv', or 'df' if you have a polars dataframe."
             )
+        
+        return self._rename_and_sort_rainfall_data_by_time(nearby_rainfall_data)
 
-    def load_nearby_gauge_data_from_parquet_files(self, path_to_files: str | Path) -> pl.DataFrame:
+    def _load_nearby_rainfall_data_from_parquet_files(self) -> pl.DataFrame:
         nearby_rainfall_data = (
-            pl.scan_parquet(path_to_files)
+            pl.scan_parquet(self.path_to_rainfall_files)
             .filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
             .collect()
         )
         return nearby_rainfall_data
 
-    def load_nearby_gauge_data_from_csv_files(self, path_to_files: str | Path) -> pl.DataFrame:
+    def _load_nearby_rainfall_data_from_csv_files(self) -> pl.DataFrame:
         nearby_rainfall_data = (
-            pl.scan_csv(path_to_files)
+            pl.scan_csv(self.path_to_rainfall_files)
             .filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
             .collect()
         )
         return nearby_rainfall_data
 
-    def load_nearby_gauge_data_from_pl(self, rainfall_data: pl.DataFrame) -> pl.DataFrame:
-        return rainfall_data.filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
+    def _load_nearby_rainfall_data_from_pl(self) -> pl.DataFrame:
+        return self.rainfall_data_pl.filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
+
+
+    def _rename_and_sort_rainfall_data_by_time(self) -> pl.DataFrame:
+        return self.nearby_rainfall_data.rename({self.date_time_col: "time"}).sort(by="time")
+
+    def pivot_nearby_rainfall_data(self) -> pl.DataFrame:
+        return self.nearby_rainfall_data.pivot(
+            values=self.precipitation_col, index=self.date_time_col, on=self.station_id_col
+        )
+    # upsample data to time step
+    nearby_rainfall_data_pivot_upsample = 
+
+    nearby_rainfall_data_pivot_upsample = nearby_rainfall_data_pivot_upsample.upsample(
+        "time", every=TIME_RES
+    )

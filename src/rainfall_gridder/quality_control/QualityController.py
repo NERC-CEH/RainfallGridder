@@ -1,7 +1,7 @@
 import polars as pl
 import rainfallqc
 
-from rainfall_gridder.quality_control.nearby_gauge_loader import NearbyGaugeDataLoader
+from rainfall_gridder.quality_control.nearby_gauge_loader import NearbyRainfallDataLoader
 from rainfall_gridder.utils import spatial_utils
 
 
@@ -94,7 +94,7 @@ class QualityController:
 
         # begin loop
         for ind, station_id in enumerate(unique_station_ids):
-            nearby_gauge_loader = NearbyGaugeDataLoader(
+            nearby_gauge_loader = NearbyRainfallDataLoader(
                 metadata=self.rainfall_metadata,
                 station_id=station_id,
                 station_id_col=self.station_id_col,
