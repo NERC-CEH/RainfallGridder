@@ -44,10 +44,10 @@ def ceh_gear_subdaily_workflow(
     config = WorkflowConfig(
         **default_ceh_gear_kwargs,
         **overrides,  # will silent win against default ceh_gear_kwargs
-        data={
+        rainfall_data={
             "path": rainfall_data_path,
         },
-        metadata={
+        rainfall_metadata={
             "path": rainfall_metadata_path,
         },
         gridded_rainfall_data={
