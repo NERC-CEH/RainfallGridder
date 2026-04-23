@@ -16,7 +16,7 @@ def ceh_gear_subdaily_workflow(
     gridded_rainfall_col: str,
     default_ceh_gear_kwargs: dict,
     data_columns: dict | ColumnConfig | None = None,
-    **overrides, 
+    **overrides,
 ) -> None:
     """
     Workflow for preparing, quality controlling and gridding rain gauge data onto CEH-GEAR subdaily product.
@@ -37,7 +37,7 @@ def ceh_gear_subdaily_workflow(
         Names of the columns in rainfall data and metadata (will default to standard names, see config/schema.py)
     overrides:
         Any arguments to override in the defaults of CEH-GEAR workflow or Workflowconfig
-    
+
     """
     # 1. Build column config (allow overrides)
     if data_columns is None:
@@ -48,7 +48,7 @@ def ceh_gear_subdaily_workflow(
     # 2. Build workflow config (NOTE: match schema structure)
     config = WorkflowConfig(
         **default_ceh_gear_kwargs,
-        **overrides, # will silent win against default ceh_gear_kwargs
+        **overrides,  # will silent win against default ceh_gear_kwargs
         data={
             "path": rainfall_data_path,
         },

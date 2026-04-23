@@ -50,5 +50,5 @@ class WorkflowConfig(BaseModel):
         ds = xr.open_dataset(self.gridded_rainfall_data.path)
         assert self.gridded_rainfall_data.rainfall_col in ds.data_vars, (
             f"{self.gridded_rainfall_data.rainfall_col} not in gridded_rainfall_data"
-                                                                         )
+        )
         return ds

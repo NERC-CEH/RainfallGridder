@@ -101,15 +101,43 @@ class DataPreparer:
         return data_formatting.set_negative_precip_values_to_none(data, precip_col=self.precipitation_col)
 
     @classmethod
-    def run(cls, partition_by_columns: list = None, **kwargs):
+    def run(
+        cls, save_data: bool=True, return_data: bool=False, partition_by_columns: list = None, **kwargs
+    ) -> None | tuple[pl.DataFrame, pl.DataFrame]:
+        """
+        Run the data preparer and return and/or save the prepared data.
+
+        Parameters
+        ----------
+        save_data:
+            Whether to save data to output directory (default True)
+        return_data:
+            Whether to return dataframes (default False)
+        partition_by_columns:
+            List of columns to partition the parquet files by if saving outputs
+
+        Returns
+        -------
+        prepared_data:
+            Data run through algorithm
+        prepared_metadata:
+            Metadata of data run through algorithm
+
+        """
         data_preparer = cls(**kwargs)
         if data_preparer.verbose:
             print("Preparing data for gridder")
         data_preparer.prepare_data_and_metadata_for_gridding()
-        if data_preparer.verbose:
-            print(f"Saving data to {data_preparer.output_dir}")
-        data_preparer.save_prepared_data(partition_by_columns)
-        data_preparer.save_prepared_metadata()
+        if save_data:
+            if data_preparer.verbose:
+                print(f"Saving data to {data_preparer.output_dir}")
+            data_preparer.save_prepared_data(partition_by_columns)
+            data_preparer.save_prepared_metadata()
+        else:
+            if data_preparer.verbose:
+                print(f"Data not saved")
+        if return_data:
+            return data_preparer.prepared_data, data_preparer.prepared_metadata
 
     def prepare_data_and_metadata_for_gridding(self):
         prepared_data_list = []
