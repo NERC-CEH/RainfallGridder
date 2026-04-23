@@ -62,11 +62,9 @@ def add_completeness_to_metadata(
     """
     # 1. Check if there are duplicates in the station IDs.
     check_duplicates_in_metadata(metadata, cols_to_check=station_id_col)
-    print()
     metadata = add_start_and_end_dates_to_metadata(
         data, metadata, station_id_col=station_id_col, date_time_col=date_time_col
     )
-    print(metadata)
     # Aggregate start, end, and actual count per station
     completeness_summary = data.group_by(station_id_col).agg(
         [
