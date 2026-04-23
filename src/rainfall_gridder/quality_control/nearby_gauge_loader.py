@@ -123,13 +123,11 @@ class NearbyRainfallDataLoader:
 
     def prepare_nearby_rainfall_data_for_rainfallqc(self):
         nearby_rainfall_data_pivot = self.pivot_nearby_rainfall_data()
-        nearby_rainfall_for_rainfallqc = self.upsample_nearby_rainfall_data(nearby_rainfall_data_pivot)
+        nearby_rainfall_for_rainfallqc = self.upsample_data(nearby_rainfall_data_pivot)
         return nearby_rainfall_for_rainfallqc
 
     def pivot_nearby_rainfall_data(self) -> pl.DataFrame:
-        return self.nearby_rainfall_data.pivot(
-            values=self.precipitation_col, index="time", on=self.station_id_col
-        )
+        return self.nearby_rainfall_data.pivot(values=self.precipitation_col, index="time", on=self.station_id_col)
 
-    def upsample_nearby_rainfall_data(self) -> pl.DataFrame:
-        return self.nearby_rainfall_pivot_data.upsample("time", every=self.time_res)
+    def upsample_data(self, data) -> pl.DataFrame:
+        return data.upsample("time", every=self.time_res)
