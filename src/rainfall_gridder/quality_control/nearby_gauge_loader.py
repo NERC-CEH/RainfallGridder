@@ -96,7 +96,7 @@ class NearbyRainfallDataLoader:
                 f"Unsupported data_source: {self.data_source}. Please set this to either 'parquet', 'csv', or 'df' if you have a polars dataframe."
             )
         
-        return self._rename_and_sort_rainfall_data_by_time()
+        return self._rename_and_sort_rainfall_data_by_time(nearby_rainfall_data)
 
     def _load_nearby_rainfall_data_from_parquet_files(self) -> pl.DataFrame:
         nearby_rainfall_data = (
@@ -117,8 +117,8 @@ class NearbyRainfallDataLoader:
     def _load_nearby_rainfall_data_from_pl(self) -> pl.DataFrame:
         return self.rainfall_data_pl.filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
 
-    def _rename_and_sort_rainfall_data_by_time(self) -> pl.DataFrame:
-        return self.nearby_rainfall_data.rename({self.date_time_col: "time"}).sort(by="time")
+    def _rename_and_sort_rainfall_data_by_time(self, nearby_rainfall_data: pl.DataFrame) -> pl.DataFrame:
+        return nearby_rainfall_data.rename({self.date_time_col: "time"}).sort(by="time")
 
     def prepare_nearby_rainfall_data_for_rainfallqc(self):
         nearby_rainfall_data_pivot = self.pivot_nearby_rainfall_data(self.nearby_rainfall_data)
