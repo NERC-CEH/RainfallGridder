@@ -102,7 +102,7 @@ class DataPreparer:
 
     @classmethod
     def run(
-        cls, save_data: bool=True, return_data: bool=False, partition_by_columns: list = None, **kwargs
+        cls, save_data: bool = True, return_data: bool = False, partition_by_columns: list = None, **kwargs
     ) -> None | tuple[pl.DataFrame, pl.DataFrame]:
         """
         Run the data preparer and return and/or save the prepared data.

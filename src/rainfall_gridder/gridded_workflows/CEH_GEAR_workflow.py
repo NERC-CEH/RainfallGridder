@@ -68,7 +68,26 @@ def ceh_gear_subdaily_workflow(
 
     # Start workflow
     # 1. Prepare data
-    data, metadata = DataPreparer.run(data, metadata, data_columns.date_time_col, gridded_rainfall)
+    # data, metadata, config.data_columns.date_time_col, gridded_rainfall, verbose=True, save_data=True, return_data=True)
+
+    data, metadata = DataPreparer.run(
+        data=data,
+        metadata=data,
+        station_id_col=config.data_columns.station_id_col,
+        station_name_col=config.data_columns.station_id_col,
+        precipitation_col=config.data_columns.precipitation_col,
+        date_time_col=config.data_columns.precipitation_col,
+        start_date_col=config.data_columns.start_date_col,
+        end_date_col=config.data_columns.start_date_col,
+        easting_col=config.data_columns.easting_col,
+        northing_col=config.data_columns.easting_col,
+        gridded_rainfall_data=gridded_rainfall,
+        gridded_rainfall_col=config.gridded_rainfall_data.rainfall_col,
+        rainfall_offset_hours=config.rainfall_offset_hours,
+        output_dir=config.output_dir,
+        verbose=config.verbose,
+        min_n_timesteps=config.min_n_timesteps,
+    )
 
     # 2. Quality Control
     data, metadata = apply_intenseQC_rulebase(data, metadata, config.output_dir)
