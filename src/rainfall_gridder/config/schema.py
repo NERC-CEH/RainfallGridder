@@ -39,6 +39,7 @@ class WorkflowConfig(BaseModel):
     rainfall_offset_hours: int
     n_hours: int
     verbose: bool = False
+    input_crs: str
     min_n_timesteps: int = 100
     batch_size: int = 5
 
