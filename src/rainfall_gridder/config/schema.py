@@ -25,7 +25,7 @@ class RainGaugeDataConfig(BaseModel):
 
 
 class GriddedRainfallConfig(BaseModel):
-    path: xr.Dataset
+    path: Path
     rainfall_col: str
 
 
