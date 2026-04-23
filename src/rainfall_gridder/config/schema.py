@@ -37,7 +37,7 @@ class WorkflowConfig(BaseModel):
     output_dir: Path
     rainfall_offset_hours: int
     n_hours: int
-    verbose: bool
+    verbose: bool = False
     min_n_timesteps: int = 100
     batch_size: int = 5
 
