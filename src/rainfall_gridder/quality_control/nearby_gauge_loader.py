@@ -14,6 +14,7 @@ class NearbyRainfallDataLoader:
         end_datetime_col: str,
         station_id_col: str,
         min_overlap_days: int,
+        time_res: str,
         path_to_rainfall_files: None = None,
         rainfall_data_pl: None = None,
         distance_threshold: int = 50,
@@ -26,6 +27,8 @@ class NearbyRainfallDataLoader:
         ----------
         rainfall_data_source:
             Source for the rainfall data, can be either 'csv', 'parquet' for file_paths or 'df' for a loaded in polars df
+        time_res:
+            Resolution of data (i.e. hourly or 15 min denoted: '1h' or '15m')
 
         """
 
@@ -38,6 +41,8 @@ class NearbyRainfallDataLoader:
         self.distance_threshold = distance_threshold
         self.min_overlap_days = min_overlap_days
         self.n_closest = n_closest
+        self.time_res = time_res
+
         self.path_to_rainfall_files = path_to_rainfall_files
         self.rainfall_data_pl = rainfall_data_pl
 
@@ -45,7 +50,7 @@ class NearbyRainfallDataLoader:
         self.nearby_rain_gauge_distances = self._get_nearby_rain_gauge_distances()
         self.stations_to_load = self.nearby_metadata[self.station_id_col].unique().to_list()
         self.nearby_rainfall_data = self.load_nearby_rainfall_data()
-        self.nearby_rainfall_pivot_data = self.pivot_nearby_rainfall_data()
+        self.nearby_rainfall_for_rainfallqc = self.prepare_nearby_rainfall_data_for_rainfallqc()
 
     def _get_nearby_metadata(self, metadata):
         ten_nearest_neighbour_ids = neighbourhood_utils.get_ids_of_n_nearest_overlapping_neighbouring_gauges(
@@ -85,7 +90,7 @@ class NearbyRainfallDataLoader:
         elif self.rainfall_data_source == "df":
             if self.rainfall_data_pl is None:
                 raise ValueError("rainfall_data must be provided for df data source")
-            nearby_rainfall_data = self._load_nearby_rainfall_data_from_pl(self.rainfall_data_pl)
+            nearby_rainfall_data = self._load_nearby_rainfall_data_from_pl()
         else:
             raise ValueError(
                 f"Unsupported data_source: {self.data_source}. Please set this to either 'parquet', 'csv', or 'df' if you have a polars dataframe."
@@ -112,17 +117,18 @@ class NearbyRainfallDataLoader:
     def _load_nearby_rainfall_data_from_pl(self) -> pl.DataFrame:
         return self.rainfall_data_pl.filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
 
-
     def _rename_and_sort_rainfall_data_by_time(self) -> pl.DataFrame:
         return self.nearby_rainfall_data.rename({self.date_time_col: "time"}).sort(by="time")
+
+    def prepare_nearby_rainfall_data_for_rainfallqc(self):
+        nearby_rainfall_data_pivot = self.pivot_nearby_rainfall_data(self.nearby_rainfall_data)
+        nearby_rainfall_for_rainfallqc = self.upsample_nearby_rainfall_data(nearby_rainfall_data_pivot)
+        return nearby_rainfall_for_rainfallqc
 
     def pivot_nearby_rainfall_data(self) -> pl.DataFrame:
         return self.nearby_rainfall_data.pivot(
             values=self.precipitation_col, index=self.date_time_col, on=self.station_id_col
         )
-    # upsample data to time step
-    nearby_rainfall_data_pivot_upsample = 
 
-    nearby_rainfall_data_pivot_upsample = nearby_rainfall_data_pivot_upsample.upsample(
-        "time", every=TIME_RES
-    )
+    def upsample_nearby_rainfall_data(self) -> pl.DataFrame:
+        return self.nearby_rainfall_pivot_data.upsample("time", every=self.time_res)
