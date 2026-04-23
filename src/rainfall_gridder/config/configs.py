@@ -19,4 +19,3 @@ def get_ceh_gear_15m_HadUK_Grid_based_kwargs():
         "n_hours": 96,
         "min_n_timesteps": 100,  # TODO: change
     }
-

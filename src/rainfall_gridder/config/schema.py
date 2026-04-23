@@ -15,26 +15,27 @@ class ColumnConfig(BaseModel):
     precipitation_col: str = "precipitation"
 
 
+class RainGaugeMetadataConfig(BaseModel):
+    path: Path
+
+
+class RainGaugeDataConfig(BaseModel):
+    path: Path
+
+
+class GriddedRainfallConfig(BaseModel):
+    path: xr.Dataset
+    rainfall_col: str
+
+
 class WorkflowConfig(BaseModel):
-    data: pl.DataFrame
-    metadata: pl.DataFrame
+    data: RainGaugeDataConfig
+    metadata: RainGaugeMetadataConfig
     data_columns: ColumnConfig
-    gridded_rainfall_data: xr.Dataset
-    gridded_rainfall_col: str
+    gridded_rainfall_data: GriddedRainfallConfig
     output_dir: Path
     rainfall_offset_hours: int
     n_hours: int
     verbose: bool
     min_n_timesteps: int = 100
     batch_size: int = 5
-
-# class MetadataConfig(BaseModel):
-#     path: Path
-
-
-# class DataConfig(BaseModel):
-#     path: Path
-
-# class GriddedRainfallConfig(BaseModel):
-#     gridded_rainfall_data: xr.Dataset
-#     gridded_rainfall_col: str
