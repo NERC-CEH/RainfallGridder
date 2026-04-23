@@ -56,15 +56,15 @@ class QualityController:
         self.min_n_timesteps = min_n_timesteps
         self.time_res = self._validate_time_res(time_res)
 
-        if "latitude" not in rainfall_data.columns or "longitude" not in rainfall_data.columns:
-            self.rainfall_data = self._add_latlon_to_rainfall_data(rainfall_data)
+        if "latitude" not in rainfall_metadata.columns or "longitude" not in rainfall_metadata.columns:
+            self.rainfall_metadata = self._add_latlon_to_rainfall_metadata(rainfall_metadata)
         else:
-            self.rainfall_data = rainfall_data
-        self.rainfall_metadata = rainfall_metadata
+            self.rainfall_metadata = rainfall_metadata
+        self.rainfall_data = rainfall_data
 
-    def _add_latlon_to_rainfall_data(self, rainfall_data: pl.DataFrame) -> pl.DataFrame:
+    def _add_latlon_to_rainfall_metaddata(self, rainfall_metadata: pl.DataFrame) -> pl.DataFrame:
         return spatial_utils.crs_to_crs(
-            rainfall_data,
+            rainfall_metadata,
             crs_in=self.input_crs,
             crs_out="EPSG:4326",
             east_west_col_in=self.easting_col,
