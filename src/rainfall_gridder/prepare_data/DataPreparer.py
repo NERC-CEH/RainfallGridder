@@ -8,6 +8,9 @@ from rainfall_gridder.utils import spatial_utils, xarray_utils
 
 
 class DataPreparer:
+    """
+    Main data preparing algorithm.
+    """
     def __init__(
         self,
         data: pl.DataFrame,
@@ -63,12 +66,12 @@ class DataPreparer:
         self.prepared_data = None
         self.prepared_metadata = None
 
-    def _remove_duplicates_in_metadata(self, metadata):
+    def _remove_duplicates_in_metadata(self, metadata: pl.DataFrame) -> pl.DataFrame:
         return metadata.unique(
             subset=[self.station_id_col]
         )  # TODO: this would leave wrong coords if it returns first unique
 
-    def _prepare_metadata(self, metadata):
+    def _prepare_metadata(self, metadata: pl.DataFrame) -> pl.DataFrame:
         metadata = self._remove_duplicates_in_metadata(metadata)
         try:
             metadata_preparer.add_completeness_to_metadata(
@@ -85,7 +88,7 @@ class DataPreparer:
         )
         return data_formatting.add_blank_file_path_to_metadata(metadata)
 
-    def _prepare_gridded_rainfall_data(self, gridded_rainfall_data):
+    def _prepare_gridded_rainfall_data(self, gridded_rainfall_data: xr.Dataset) -> xr.Dataset:
         for data_var in ["x", "y", "time", self.gridded_rainfall_col]:
             assert data_var in gridded_rainfall_data, (
                 f"Expecting data variable: '{data_var}' in gridded rainfall data. "
@@ -141,7 +144,7 @@ class DataPreparer:
         if return_data:
             return data_preparer.prepared_data, data_preparer.prepared_metadata
 
-    def prepare_data_and_metadata_for_gridding(self):
+    def prepare_data_and_metadata_for_gridding(self) -> None:
         prepared_data_list = []
         prepared_metadata_list = []
 
