@@ -27,8 +27,8 @@ class DataPreparer:
         gridded_rainfall_col: str,
         rainfall_offset_hours: int,
         output_dir: str | Path,
+        min_n_timesteps: int,
         verbose: bool = False,
-        min_n_timesteps: int = 100,
     ):
         """
         Main data preparer for gridded workflow.
@@ -45,6 +45,8 @@ class DataPreparer:
             First hour of the rainfall day (e.g. 9 if running from 9am to 8.59am)
         output_dir:
             Output directory for data files
+        min_n_timesteps:
+            Minimum number of timesteps needed in rainfall_data to be considered valid
 
         """
         self.station_id_col = station_id_col
