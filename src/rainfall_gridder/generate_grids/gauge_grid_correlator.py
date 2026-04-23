@@ -92,14 +92,30 @@ class GaugeVsGriddedCorrelator:
             Nearest grid cell of daily rainfall
 
         Returns
-        ------- 
-        nearest_gridded_daily:
+        -------
+        nearest_gridded_daily_clipped:
             Nearest grid cell of daily rainfall clipped to start and end datetime of gauge
+
+        Raises
+        ------
+        ValueError:
+            If there is no overlap between gauge data and gridded daily rainfall
 
         """
         start_datetime = self.gauge_metadata[self.start_datetime_col][0]
         end_datetime = self.gauge_metadata[self.end_datetime_col][0]
-        return nearest_gridded_daily.sel(time=slice(start_datetime, end_datetime))
+        nearest_gridded_daily_clipped = nearest_gridded_daily.sel(time=slice(start_datetime, end_datetime))
+        if nearest_gridded_daily_clipped["time"].size == 0:
+            raise ValueError(
+                (
+                    "No overlap between the daily gridded data and the inputted gauge data. "
+                    f"Gauge data runs from {start_datetime} to {end_datetime}, "
+                    f"whereas the gridded data runs from "
+                    f"{nearest_gridded_daily['time'].min().data} "
+                    f"to {nearest_gridded_daily['time'].max().data}."
+                )
+            )
+        return nearest_gridded_daily_clipped
 
     def get_corr(self):
         r_result = scipy.stats.pearsonr(

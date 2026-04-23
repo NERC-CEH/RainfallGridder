@@ -33,7 +33,7 @@ def group_metadata_by_station_locations(metadata: pl.DataFrame, easting_col: str
     easting_col:
         Name of easting coord column
     northing_col:
-        Name of easting coord column
+        Name of northing coord column
 
     Returns
     -------
