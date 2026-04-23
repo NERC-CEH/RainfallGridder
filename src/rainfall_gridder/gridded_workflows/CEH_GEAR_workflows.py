@@ -77,7 +77,7 @@ def ceh_gear_subdaily_workflow(
         easting_col=config.data_columns.easting_col,
         northing_col=config.data_columns.northing_col,
         gridded_rainfall_data=gridded_rainfall,
-        gridded_rainfall_col=config.rainfall_col,
+        gridded_rainfall_col=config.gridded_rainfall_col,
         rainfall_offset_hours=config.rainfall_offset_hours,
         output_dir=config.output_dir,
         verbose=config.verbose,
