@@ -26,7 +26,8 @@ def add_start_and_end_dates_to_metadata(
 
     # Add start and end dates to metadata, not necessary if you remove duplicates
     assert data[date_time_col].dtype == pl.Datetime, (
-        f"Datetime column: '{date_time_col}' is not datetime dtype, it is '{data[date_time_col].dtype}'"
+        f"Datetime column named '{date_time_col}' is not datetime dtype, it is '{data[date_time_col].dtype}'"
+        "Is the correct column?"
     )
     return metadata.join(
         data.group_by(station_id_col).agg(
