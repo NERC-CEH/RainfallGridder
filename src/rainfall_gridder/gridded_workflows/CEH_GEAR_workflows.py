@@ -7,8 +7,9 @@ from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 def ceh_gear_subdaily_workflow(
     rainfall_data_path: str | Path,
     rainfall_metadata_path: str | Path,
-    gridded_rainfall_data: str | Path | xr.Dataset,
+    gridded_rainfall_path: str | Path | xr.Dataset,
     default_ceh_gear_kwargs: dict,
+    gridded_rainfall_rename_dict: dict | None = None,
     data_columns: dict | ColumnConfig | None = None,
     **overrides,
 ) -> None:
@@ -21,10 +22,12 @@ def ceh_gear_subdaily_workflow(
        Path to rain gauge data
     rainfall_metadata_path:
         Path to metadata for the rain gauge data
-    gridded_rainfall_data:
-        Path or xarray Dataset of gridded rainfall data (e.g. HadUK-Grid) 
+    gridded_rainfall_path:
+        Path to gridded rainfall data (e.g. HadUK-Grid) 
     default_ceh_gear_kwargs:
         Default arguments for CEH-GEAR workflow (see config/configs.py)
+    gridded_rainfall_rename_dict:
+        Columns to rename
     data_columns:
         Names of the columns in rainfall data and metadata (will default to standard names, see config/schema.py)
     overrides:
@@ -47,7 +50,10 @@ def ceh_gear_subdaily_workflow(
         rainfall_metadata={
             "path": rainfall_metadata_path,
         },
-        gridded_rainfall_data=gridded_rainfall_data,
+        gridded_rainfall_data={
+            "path": gridded_rainfall_path,
+            "rename": gridded_rainfall_rename_dict or {},
+        },
         data_columns=data_columns,
     )
     # 0. Load in data
