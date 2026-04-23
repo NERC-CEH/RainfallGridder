@@ -67,7 +67,7 @@ def ceh_gear_subdaily_workflow(
     print("1. Prepare data")
     data, metadata = DataPreparer.run(
         data=data,
-        metadata=data,
+        metadata=metadata,
         station_id_col=config.data_columns.station_id_col,
         station_name_col=config.data_columns.station_name_col,
         precipitation_col=config.data_columns.precipitation_col,
