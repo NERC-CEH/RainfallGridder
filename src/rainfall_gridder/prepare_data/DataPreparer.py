@@ -1,6 +1,8 @@
 from pathlib import Path
+
 import polars as pl
 import xarray as xr
+
 from rainfall_gridder.prepare_data import data_combiner, data_formatting, metadata_preparer
 from rainfall_gridder.utils import spatial_utils, xarray_utils
 
@@ -135,7 +137,7 @@ class DataPreparer:
             data_preparer.save_prepared_metadata()
         else:
             if data_preparer.verbose:
-                print(f"Data not saved")
+                print("Data not saved")
         if return_data:
             return data_preparer.prepared_data, data_preparer.prepared_metadata
 
