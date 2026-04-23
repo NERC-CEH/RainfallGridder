@@ -1,6 +1,7 @@
 import polars as pl
 import rainfallqc
 
+from rainfall_gridder.quality_control.nearby_gauge_loader import NearbyGaugeDataLoader
 from rainfall_gridder.utils import spatial_utils
 
 
@@ -61,7 +62,7 @@ class QualityController:
             self.rainfall_data = rainfall_data
         self.rainfall_metadata = rainfall_metadata
 
-    def _add_latlon_to_rainfall_data(self, rainfall_data):
+    def _add_latlon_to_rainfall_data(self, rainfall_data: pl.DataFrame) -> pl.DataFrame:
         return spatial_utils.crs_to_crs(
             rainfall_data,
             crs_in=self.input_crs,
@@ -84,14 +85,28 @@ class QualityController:
         )
         return time_res
 
-    def get_ten_nearest_neighbour_ids(self, target_station_id: str, distance_threshold_km: int = 50):
-        return rainfallqc.neighbourhood_utils.get_ids_of_n_nearest_overlapping_neighbouring_gauges(
-            self.rainfall_metadata,
-            target_id=target_station_id,
-            distance_threshold=distance_threshold_km,  # in km
-            min_overlap_days=self.min_n_timesteps,  # in days
-            n_closest=10,  # number of neighbours to return
-            station_id_col=self.station_id_col,
-            start_datetime_col=self.start_date_col,
-            end_datetime_col=self.end_date_col,
-        )
+    def quality_control_data(self):
+        # preallocate the list sizes
+        unique_station_ids = self.rainfall_metadata[self.station_id_col].unique()
+        overall_summary_of_qc = [None] * len(unique_station_ids)
+        qcd_data_list = [None] * len(unique_station_ids)
+        rulebase_summary = [None] * len(unique_station_ids)
+
+        # begin loop
+        for ind, station_id in enumerate(unique_station_ids):
+            nearby_gauge_loader = NearbyGaugeDataLoader(
+                metadata=self.rainfall_metadata,
+                station_id=station_id,
+                station_id_col=self.station_id_col,
+                start_datetime_col=self.start_date_col,
+                end_datetime_col=self.end_date_col,
+                min_overlap_days=self.min_n_timesteps/time_res_to_n_time_steps_in_day[self.time_res], #TODO check this needs to be days
+                rainfall_data_source='df',
+
+            )
+            nearby_metadata = nearby_gauge_loader.nearby_metadata
+            nearby_rainfall_data = (
+                nearby_gauge_loader.load_nearby_gauge_data(
+                    rainfall_data=self.rainfall_data
+                )
+            )
