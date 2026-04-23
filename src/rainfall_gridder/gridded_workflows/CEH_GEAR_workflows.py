@@ -23,7 +23,7 @@ def ceh_gear_subdaily_workflow(
     rainfall_metadata_path:
         Path to metadata for the rain gauge data
     gridded_rainfall_path:
-        Path to gridded rainfall data (e.g. HadUK-Grid) 
+        Path to gridded rainfall data (e.g. HadUK-Grid)
     default_ceh_gear_kwargs:
         Default arguments for CEH-GEAR workflow (see config/configs.py)
     gridded_rainfall_rename_dict:

@@ -11,6 +11,7 @@ class DataPreparer:
     """
     Main data preparing algorithm.
     """
+
     def __init__(
         self,
         rainfall_data: pl.DataFrame,
@@ -81,7 +82,10 @@ class DataPreparer:
         rainfall_metadata = self._remove_duplicates_in_metadata(rainfall_metadata)
         try:
             metadata_preparer.add_completeness_to_metadata(
-                self.rainfall_data, rainfall_metadata, station_id_col=self.station_id_col, date_time_col=self.date_time_col
+                self.rainfall_data,
+                rainfall_metadata,
+                station_id_col=self.station_id_col,
+                date_time_col=self.date_time_col,
             )
         except ValueError as ve:
             print(ve)

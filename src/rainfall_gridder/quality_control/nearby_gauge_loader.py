@@ -22,10 +22,10 @@ class NearbyGaugeDataLoader:
         Parameters
         ----------
         rainfall_data_source:
-            Source for the rainfall data, can be either 'csv', 'parquet' for file_paths or 'df' for a loaded in polars df 
-        
+            Source for the rainfall data, can be either 'csv', 'parquet' for file_paths or 'df' for a loaded in polars df
+
         """
-    
+
         self.rainfall_data_source = rainfall_data_source
         self.station_id = station_id
         self.start_datetime_col = start_datetime_col
@@ -79,7 +79,9 @@ class NearbyGaugeDataLoader:
                 raise ValueError("rainfall_data must be provided for df data source")
             return self.load_nearby_gauge_data_from_pl(rainfall_data)
         else:
-            raise ValueError(f"Unsupported data_source: {self.data_source}. Please set this to either 'parquet', 'csv', or 'df' if you have a polars dataframe.")
+            raise ValueError(
+                f"Unsupported data_source: {self.data_source}. Please set this to either 'parquet', 'csv', or 'df' if you have a polars dataframe."
+            )
 
     def load_nearby_gauge_data_from_parquet_files(self, path_to_files: str | Path) -> pl.DataFrame:
         nearby_rainfall_data = (
@@ -96,6 +98,6 @@ class NearbyGaugeDataLoader:
             .collect()
         )
         return nearby_rainfall_data
-    
+
     def load_nearby_gauge_data_from_pl(self, rainfall_data: pl.DataFrame) -> pl.DataFrame:
         return rainfall_data.filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))

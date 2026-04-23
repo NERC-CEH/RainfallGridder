@@ -100,13 +100,9 @@ class QualityController:
                 station_id_col=self.station_id_col,
                 start_datetime_col=self.start_date_col,
                 end_datetime_col=self.end_date_col,
-                min_overlap_days=self.min_n_timesteps/time_res_to_n_time_steps_in_day[self.time_res], #TODO check this needs to be days
-                rainfall_data_source='df',
-
+                min_overlap_days=self.min_n_timesteps
+                / time_res_to_n_time_steps_in_day[self.time_res],  # TODO check this needs to be days
+                rainfall_data_source="df",
             )
             nearby_metadata = nearby_gauge_loader.nearby_metadata
-            nearby_rainfall_data = (
-                nearby_gauge_loader.load_nearby_gauge_data(
-                    rainfall_data=self.rainfall_data
-                )
-            )
+            nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
