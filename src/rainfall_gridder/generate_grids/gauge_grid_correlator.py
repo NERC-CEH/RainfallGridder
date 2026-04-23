@@ -107,13 +107,11 @@ class GaugeVsGriddedCorrelator:
         nearest_gridded_daily_clipped = nearest_gridded_daily.sel(time=slice(start_datetime, end_datetime))
         if nearest_gridded_daily_clipped["time"].size == 0:
             raise ValueError(
-                (
-                    "No overlap between the daily gridded data and the inputted gauge data. "
-                    f"Gauge data runs from {start_datetime} to {end_datetime}, "
-                    f"whereas the gridded data runs from "
-                    f"{nearest_gridded_daily['time'].min().data} "
-                    f"to {nearest_gridded_daily['time'].max().data}."
-                )
+                "No overlap between the daily gridded data and the inputted gauge data. "
+                f"Gauge data runs from {start_datetime} to {end_datetime}, "
+                f"whereas the gridded data runs from "
+                f"{nearest_gridded_daily['time'].min().data} "
+                f"to {nearest_gridded_daily['time'].max().data}."
             )
         return nearest_gridded_daily_clipped
 

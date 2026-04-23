@@ -9,7 +9,6 @@ import pytest
 
 from rainfall_gridder.prepare_data import metadata_preparer
 
-
 STATION_DATA = [
     {
         "station_id": "240662TP",
