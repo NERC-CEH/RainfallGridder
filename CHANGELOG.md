@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.3] - 2026-04-26
+
+### Added
+* Add pydantic BaseModels for CEH-GEAR workflows
+* Plug DataPreparer to the CEH-GEAR subdaily workflow (part 1 of 4)
+
 ## [0.0.2] - 2026-04-22
 
 ### Added
