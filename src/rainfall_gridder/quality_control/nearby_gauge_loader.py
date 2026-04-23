@@ -9,10 +9,11 @@ class NearbyRainfallDataLoader:
         metadata: pl.DataFrame,
         rainfall_data_source: str,
         station_id: str,
+        station_id_col: str,
+        precipitation_col: str,
         date_time_col: str,
         start_datetime_col: str,
         end_datetime_col: str,
-        station_id_col: str,
         min_overlap_days: int,
         time_res: str,
         path_to_rainfall_files: None = None,
@@ -34,10 +35,11 @@ class NearbyRainfallDataLoader:
 
         self.rainfall_data_source = rainfall_data_source
         self.station_id = station_id
+        self.station_id_col = station_id_col
+        self.precipitation_col = precipitation_col
         self.date_time_col = date_time_col
         self.start_datetime_col = start_datetime_col
         self.end_datetime_col = end_datetime_col
-        self.station_id_col = station_id_col
         self.distance_threshold = distance_threshold
         self.min_overlap_days = min_overlap_days
         self.n_closest = n_closest
