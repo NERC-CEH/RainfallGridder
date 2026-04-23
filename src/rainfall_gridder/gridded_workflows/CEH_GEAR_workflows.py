@@ -58,16 +58,16 @@ def ceh_gear_subdaily_workflow(
     )
     # 0. Load in data
     print("0. Load in data")
-    data = config.load_rainfall_data()
-    metadata = config.load_rainfall_metadata()
+    rainfall_data = config.load_rainfall_data()
+    rainfall_metadata = config.load_rainfall_metadata()
     gridded_rainfall = config.load_gridded_rainfall()
 
     # Start workflow
     # 1. Prepare data
     print("1. Prepare data")
     data, metadata = DataPreparer.run(
-        data=data,
-        metadata=metadata,
+        rainfall_data=rainfall_data,
+        rainfall_metadata=rainfall_metadata,
         station_id_col=config.data_columns.station_id_col,
         station_name_col=config.data_columns.station_name_col,
         precipitation_col=config.data_columns.precipitation_col,
