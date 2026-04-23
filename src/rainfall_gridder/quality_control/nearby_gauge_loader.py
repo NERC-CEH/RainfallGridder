@@ -121,7 +121,7 @@ class NearbyRainfallDataLoader:
         return nearby_rainfall_data.rename({self.date_time_col: "time"}).sort(by="time")
 
     def prepare_nearby_rainfall_data_for_rainfallqc(self):
-        nearby_rainfall_data_pivot = self.pivot_nearby_rainfall_data(self.nearby_rainfall_data)
+        nearby_rainfall_data_pivot = self.pivot_nearby_rainfall_data()
         nearby_rainfall_for_rainfallqc = self.upsample_nearby_rainfall_data(nearby_rainfall_data_pivot)
         return nearby_rainfall_for_rainfallqc
 
