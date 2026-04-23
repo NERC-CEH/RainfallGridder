@@ -97,7 +97,6 @@ class NearbyRainfallDataLoader:
             raise ValueError(
                 f"Unsupported data_source: {self.data_source}. Please set this to either 'parquet', 'csv', or 'df' if you have a polars dataframe."
             )
-        
         return self._rename_and_sort_rainfall_data_by_time(nearby_rainfall_data)
 
     def _load_nearby_rainfall_data_from_parquet_files(self) -> pl.DataFrame:
@@ -129,7 +128,7 @@ class NearbyRainfallDataLoader:
 
     def pivot_nearby_rainfall_data(self) -> pl.DataFrame:
         return self.nearby_rainfall_data.pivot(
-            values=self.precipitation_col, index=self.date_time_col, on=self.station_id_col
+            values=self.precipitation_col, index="time", on=self.station_id_col
         )
 
     def upsample_nearby_rainfall_data(self) -> pl.DataFrame:
