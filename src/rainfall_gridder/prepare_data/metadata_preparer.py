@@ -25,6 +25,9 @@ def add_start_and_end_dates_to_metadata(
     """
 
     # Add start and end dates to metadata, not necessary if you remove duplicates
+    assert data[date_time_col].dtype == pl.Datetime, (
+        f"Datetime column: '{date_time_col}' is not datetime dtype, it is '{data[date_time_col].dtype}'"
+    )
     return metadata.join(
         data.group_by(station_id_col).agg(
             pl.col(date_time_col).min().alias("start_date"), pl.col(date_time_col).max().alias("end_date")
@@ -58,11 +61,11 @@ def add_completeness_to_metadata(
     """
     # 1. Check if there are duplicates in the station IDs.
     check_duplicates_in_metadata(metadata, cols_to_check=station_id_col)
-
+    print()
     metadata = add_start_and_end_dates_to_metadata(
         data, metadata, station_id_col=station_id_col, date_time_col=date_time_col
     )
-
+    print(metadata)
     # Aggregate start, end, and actual count per station
     completeness_summary = data.group_by(station_id_col).agg(
         [
