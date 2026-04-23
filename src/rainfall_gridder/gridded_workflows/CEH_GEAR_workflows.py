@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import xarray as xr
 from rainfall_gridder.config.schema import ColumnConfig, WorkflowConfig
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 
@@ -7,8 +7,7 @@ from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 def ceh_gear_subdaily_workflow(
     rainfall_data_path: str | Path,
     rainfall_metadata_path: str | Path,
-    gridded_rainfall_path: str | Path,
-    gridded_rainfall_col: str,
+    gridded_rainfall_data: str | Path | xr.Dataset,
     default_ceh_gear_kwargs: dict,
     data_columns: dict | ColumnConfig | None = None,
     **overrides,
@@ -22,10 +21,8 @@ def ceh_gear_subdaily_workflow(
        Path to rain gauge data
     rainfall_metadata_path:
         Path to metadata for the rain gauge data
-    gridded_rainfall_path:
-        Path to rain gauge data
-    gridded_rainfall_col:
-        Name of rainfall column in gridded rainfall data
+    gridded_rainfall_data:
+        Path or xarray Dataset of gridded rainfall data (e.g. HadUK-Grid) 
     default_ceh_gear_kwargs:
         Default arguments for CEH-GEAR workflow (see config/configs.py)
     data_columns:
@@ -50,10 +47,7 @@ def ceh_gear_subdaily_workflow(
         rainfall_metadata={
             "path": rainfall_metadata_path,
         },
-        gridded_rainfall_data={
-            "path": gridded_rainfall_path,
-            "rainfall_col": gridded_rainfall_col,
-        },
+        gridded_rainfall_data=gridded_rainfall_data,
         data_columns=data_columns,
     )
     # 0. Load in data
@@ -77,7 +71,7 @@ def ceh_gear_subdaily_workflow(
         easting_col=config.data_columns.easting_col,
         northing_col=config.data_columns.northing_col,
         gridded_rainfall_data=gridded_rainfall,
-        gridded_rainfall_col=config.gridded_rainfall_data.rainfall_col,
+        gridded_rainfall_col=config.rainfall_col,
         rainfall_offset_hours=config.rainfall_offset_hours,
         output_dir=config.output_dir,
         verbose=config.verbose,

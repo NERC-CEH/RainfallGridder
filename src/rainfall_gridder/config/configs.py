@@ -3,6 +3,7 @@ from pathlib import Path
 
 def get_ceh_gear_15m_CEH_GEAR_based_kwargs():
     return {
+        "gridded_rainfall_col": "rainfall_amount",
         "output_dir": Path("ceh_gear_15m_CEH_GEAR_based"),
         "rainfall_offset_hours": 10,
         "n_hours": 96,
@@ -12,6 +13,7 @@ def get_ceh_gear_15m_CEH_GEAR_based_kwargs():
 
 def get_ceh_gear_15m_HadUK_Grid_based_kwargs():
     return {
+        "gridded_rainfall_col": "rainfall",
         "output_dir": Path("ceh_gear_15m_HadUK_Grid_based"),
         "rainfall_offset_hours": 9,
         "n_hours": 96,
