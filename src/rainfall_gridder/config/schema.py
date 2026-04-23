@@ -29,8 +29,8 @@ class GriddedRainfallConfig(BaseModel):
 
 
 class WorkflowConfig(BaseModel):
-    data: RainGaugeDataConfig
-    metadata: RainGaugeMetadataConfig
+    rainfall_data: RainGaugeDataConfig
+    rainfall_metadata: RainGaugeMetadataConfig
     data_columns: ColumnConfig
     gridded_rainfall_data: GriddedRainfallConfig
     output_dir: Path
@@ -39,3 +39,16 @@ class WorkflowConfig(BaseModel):
     verbose: bool
     min_n_timesteps: int = 100
     batch_size: int = 5
+
+    def load_rainfall_data(self) -> pl.DataFrame:
+        return pl.read_parquet(self.rainfall_data.path)
+
+    def load_rainfall_metadata(self) -> pl.DataFrame:
+        return pl.read_parquet(self.rainfall_metadata.path)
+
+    def load_gridded_rainfall(self) -> xr.Dataset:
+        ds = xr.open_dataset(self.gridded_rainfall_data.path)
+        assert self.gridded_rainfall_data.rainfall_col in ds.data_vars, (
+            f"{self.gridded_rainfall_data.rainfall_col} not in gridded_rainfall_data"
+                                                                         )
+        return ds

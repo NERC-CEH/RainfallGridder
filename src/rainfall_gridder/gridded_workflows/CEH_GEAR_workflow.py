@@ -1,3 +1,4 @@
+from pathlib import Path
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control import apply_intenseQC_rulebase
 from rainfall_gridder.generate_grids import ceh_gear_subdaily_producer
@@ -9,29 +10,65 @@ from rainfall_gridder.utils import batch_saving_utils
 
 
 def ceh_gear_subdaily_workflow(
-    data_path: str, metadata_path: str, columns: dict | ColumnConfig | None = None, **overrides
-):
+    rainfall_data_path: str | Path,
+    rainfall_metadata_path: str | Path,
+    gridded_rainfall_path: str | Path,
+    gridded_rainfall_col: str,
+    default_ceh_gear_kwargs: dict,
+    data_columns: dict | ColumnConfig | None = None,
+    **overrides, 
+) -> None:
+    """
+    Workflow for preparing, quality controlling and gridding rain gauge data onto CEH-GEAR subdaily product.
+
+    Parameters
+    ----------
+    rainfall_data_path:
+       Path to rain gauge data
+    rainfall_metadata_path:
+        Path to metadata for the rain gauge data
+    gridded_rainfall_path:
+        Path to rain gauge data
+    gridded_rainfall_col:
+        Name of rainfall column in gridded rainfall data
+    default_ceh_gear_kwargs:
+        Default arguments for CEH-GEAR workflow (see config/configs.py)
+    data_columns:
+        Names of the columns in rainfall data and metadata (will default to standard names, see config/schema.py)
+    overrides:
+        Any arguments to override in the defaults of CEH-GEAR workflow or Workflowconfig
+    
+    """
     # 1. Build column config (allow overrides)
-    if columns is None:
-        columns = ColumnConfig()
-    elif isinstance(columns, dict):
-        columns = ColumnConfig(**columns)
+    if data_columns is None:
+        data_columns = ColumnConfig()
+    elif isinstance(data_columns, dict):
+        data_columns = ColumnConfig(**data_columns)
 
     # 2. Build workflow config (NOTE: match schema structure)
     config = WorkflowConfig(
-        **get_ceh_gear_15m_HadUK_Grid_based_kwargs(),
-        **overrides,
+        **default_ceh_gear_kwargs,
+        **overrides, # will silent win against default ceh_gear_kwargs
         data={
-            "path": data_path,
+            "path": rainfall_data_path,
         },
         metadata={
-            "path": metadata_path,
+            "path": rainfall_metadata_path,
         },
+        gridded_rainfall_data={
+            "path": gridded_rainfall_path,
+            "rainfall_col": gridded_rainfall_col,
+        },
+        data_columns=data_columns,
     )
+    # 0. Load in data
+    data = config.load_rainfall_data()
+    metadata = config.load_rainfall_metadata()
+    gridded_rainfall = config.load_gridded_rainfall()
 
     # Start workflow
     # 1. Prepare data
-    data, metadata = DataPreparer.run(config.data, config.metadata, columns.date_time_col)
+    data, metadata = DataPreparer.run(data, metadata, data_columns.date_time_col, gridded_rainfall)
 
     # 2. Quality Control
     data, metadata = apply_intenseQC_rulebase(data, metadata, config.output_dir)
