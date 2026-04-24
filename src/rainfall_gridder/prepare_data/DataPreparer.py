@@ -260,7 +260,7 @@ class DataPreparer:
             partition_by_columns = [self.station_id_col]
 
         if self.prepared_data is None:
-            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_output()")
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_prepared_data()")
 
         assert len(self.prepared_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
             "Problem with metadata as duplicate filepaths"
@@ -278,7 +278,7 @@ class DataPreparer:
 
     def save_prepared_metadata(self) -> None:
         if self.prepared_metadata is None:
-            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_final_metadata()")
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_prepared_metadata()")
         self.prepared_metadata.write_parquet(self.output_dir / "prepared_metadata.parquet")
         if self.verbose:
             print(f"prepared gauge metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
