@@ -265,7 +265,6 @@ class DataPreparer:
         assert len(self.prepared_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
             "Problem with metadata as duplicate filepaths"
         )
-
         # Save partitioned parquet file
         (
             self.prepared_data.sort(self.date_time_col).write_parquet(
@@ -279,6 +278,9 @@ class DataPreparer:
     def save_prepared_metadata(self) -> None:
         if self.prepared_metadata is None:
             raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_prepared_metadata()")
+        assert len(self.prepared_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
+            "Problem with metadata as duplicate filepaths"
+        )
         self.prepared_metadata.write_parquet(self.output_dir / "prepared_metadata.parquet")
         if self.verbose:
             print(f"prepared gauge metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
