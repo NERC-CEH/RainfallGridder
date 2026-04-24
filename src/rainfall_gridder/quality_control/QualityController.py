@@ -189,7 +189,7 @@ class QualityController:
             return False
 
     def quality_control_data(self):
-        # preallocate the list sizes
+        # preallocate the output lists
         unique_station_ids = self.rainfall_metadata[self.station_id_col].unique()
         overall_summary_of_qc = [None] * len(unique_station_ids)
         qcd_data_list = [None] * len(unique_station_ids)
@@ -212,12 +212,32 @@ class QualityController:
                 **self.nearby_rainfall_data_loader_kwargs,
             )
 
-            nearby_metadata = nearby_gauge_loader.nearby_metadata
-            nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
-
+            # Check if that station actually has any neighbours
             if nearby_gauge_loader.nearest_station_id is None:
                 if self.verbose:
                     print(f"Station ID: {nearby_gauge_loader.station_id} has no neighbours\n")
+                continue
+
+            nearby_metadata = nearby_gauge_loader.nearby_metadata
+            nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
+
+            # Update shared QC kwargs with latest values from nearby gauge loader
+            self.update_shared_qc_kwargs()
+
+            # Run QC framework
+            try:
+                assert len(nearby_rainfall_data) > self.min_n_timesteps, (
+                    f"Data needs at least {self.min_n_timesteps} timesteps"
+                )
+                qc_result = rainfallqc.apply_qc_framework.run_qc_framework(
+                    data=nearby_rainfall_data,
+                    qc_framework=self.qc_framework,
+                    qc_methods_to_run=self.qc_methods_to_run,
+                    qc_kwargs=self.qc_kwargs,
+                )
+            except Exception as e:
+                if self.verbose:
+                    print(station_id, e, '\n')
                 continue
 
     def save_qcd_data(self, partition_by_columns: list = None) -> None:
@@ -270,7 +290,7 @@ class QualityController:
         if self.verbose:
             print(f"Summary of QC rulebase available at: {self.output_dir / 'qc_rulebase_summary.parquet'}")
 
-    def update_shared_qc_kwargs(self, nearby_gauge_loader: NearbyRainfallDataLoader, nearest_station_id: str) -> None:
+    def update_shared_qc_kwargs(self, nearby_gauge_loader: NearbyRainfallDataLoader) -> None:
         """
         Update all the shared keyword arguments.
 
@@ -278,7 +298,7 @@ class QualityController:
         """
         self.qc_kwargs["shared"]["rain_col"] = nearby_gauge_loader.station_id
         self.qc_kwargs["shared"]["target_gauge_col"] = nearby_gauge_loader.station_id
-        self.qc_kwargs["shared"]["nearest_neighbour"] = nearest_station_id
+        self.qc_kwargs["shared"]["nearest_neighbour"] = nearby_gauge_loader.nearest_station_id
         self.qc_kwargs["shared"]["list_of_nearest_stations"] = (
             nearby_gauge_loader.nearby_rain_gauge_distances[self.station_id_col].to_list()
         )
