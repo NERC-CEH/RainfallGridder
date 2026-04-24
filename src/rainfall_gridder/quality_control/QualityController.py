@@ -180,6 +180,14 @@ class QualityController:
                 quality_controller.qc_rulebase_summary,
             )
 
+    def get_nearest_neighbour(self, nearby_gauge_loader, station_id):
+        if len(nearby_gauge_loader.nearby_rain_gauge_distances) > 0:
+            return nearby_gauge_loader.nearby_rain_gauge_distances.sort("distance")[0][self.station_id_col].item()
+        else:
+            if self.verbose:
+                print(f"Station ID: {station_id} has no neighbours\n")
+            return False
+
     def quality_control_data(self):
         # preallocate the list sizes
         unique_station_ids = self.rainfall_metadata[self.station_id_col].unique()
@@ -206,6 +214,11 @@ class QualityController:
 
             nearby_metadata = nearby_gauge_loader.nearby_metadata
             nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
+
+            if nearby_gauge_loader.nearest_station_id is None:
+                if self.verbose:
+                    print(f"Station ID: {nearby_gauge_loader.station_id} has no neighbours\n")
+                continue
 
     def save_qcd_data(self, partition_by_columns: list = None) -> None:
         """
@@ -256,3 +269,22 @@ class QualityController:
         self.qc_rulebase_summary.write_parquet(self.output_dir / "qc_rulebase_summary.parquet")
         if self.verbose:
             print(f"Summary of QC rulebase available at: {self.output_dir / 'qc_rulebase_summary.parquet'}")
+
+    def update_shared_qc_kwargs(self, nearby_gauge_loader: NearbyRainfallDataLoader, nearest_station_id: str) -> None:
+        """
+        Update all the shared keyword arguments.
+
+        TODO: Check this updating in the loop properly.
+        """
+        self.qc_kwargs["shared"]["rain_col"] = nearby_gauge_loader.station_id
+        self.qc_kwargs["shared"]["target_gauge_col"] = nearby_gauge_loader.station_id
+        self.qc_kwargs["shared"]["nearest_neighbour"] = nearest_station_id
+        self.qc_kwargs["shared"]["list_of_nearest_stations"] = (
+            nearby_gauge_loader.nearby_rain_gauge_distances[self.station_id_col].to_list()
+        )
+        self.qc_kwargs["shared"]["gauge_lat"] = nearby_gauge_loader.nearby_metadata.filter(
+            pl.col(self.station_id_col) == nearby_gauge_loader.station_id
+        )["latitude"]
+        self.qc_kwargs["shared"]["gauge_lon"] = nearby_gauge_loader.nearby_metadata.filter(
+            pl.col(self.station_id_col) == nearby_gauge_loader.station_id
+        )["longitude"]

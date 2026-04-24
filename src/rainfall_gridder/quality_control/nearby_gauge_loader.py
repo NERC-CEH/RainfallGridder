@@ -52,6 +52,7 @@ class NearbyRainfallDataLoader:
 
         self.nearby_metadata = self._get_nearby_metadata(metadata)
         self.nearby_rain_gauge_distances = self._get_nearby_rain_gauge_distances()
+        self.nearest_station_id = self._get_nearest_neighbour()
         self.stations_to_load = self.nearby_metadata[self.station_id_col].unique().to_list()
         self.nearby_rainfall_data = self.load_nearby_rainfall_data()
         self.nearby_rainfall_for_rainfallqc = self.prepare_nearby_rainfall_data_for_rainfallqc()
@@ -79,6 +80,11 @@ class NearbyRainfallDataLoader:
             target_id=self.station_id,
             station_id_col=self.station_id_col,
         )
+    
+    def _get_nearest_neighbour(self) -> str | None:
+        if not self.nearby_rain_gauge_distances:
+            return None
+        return self.nearby_rain_gauge_distances.sort("distance")[0][self.station_id_col].item()
 
     def load_nearby_rainfall_data(self) -> pl.DataFrame:
         if self.rainfall_data_source == "parquet":
