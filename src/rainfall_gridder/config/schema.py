@@ -40,9 +40,13 @@ class WorkflowConfig(BaseModel):
     n_hours: int
     verbose: bool = False
     input_crs: str
+    time_res: str
+    smallest_rainfall_amount: float
+    min_n_neighbours: int
+    qc_framework: str
+    nearby_rainfall_data_loader_kwargs: dict
     min_n_timesteps: int = 100
     batch_size: int = 5
-    time_res: str
 
     def load_rainfall_data(self) -> pl.DataFrame:
         return pl.read_parquet(self.rainfall_data.path)

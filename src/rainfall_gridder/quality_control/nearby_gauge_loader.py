@@ -19,7 +19,7 @@ class NearbyRainfallDataLoader:
         path_to_rainfall_files: None = None,
         rainfall_data_pl: None = None,
         distance_threshold_km: int = 50,
-        n_closest: int = 10,
+        n_closest_neighbours: int = 10,
     ):
         """
         Loader for nearby rain gauge stations.
@@ -30,6 +30,8 @@ class NearbyRainfallDataLoader:
             Source for the rainfall data, can be either 'csv', 'parquet' for file_paths or 'df' for a loaded in polars df
         time_res:
             Resolution of data (i.e. hourly or 15 min denoted: '1h' or '15m')
+        n_closest_neighbours:
+            Will get the top-n closest neighbours by distance 
 
         """
 
@@ -42,7 +44,7 @@ class NearbyRainfallDataLoader:
         self.end_date_col = end_date_col
         self.distance_threshold_km = distance_threshold_km
         self.min_overlap_days = min_overlap_days
-        self.n_closest = n_closest
+        self.n_closest_neighbours = n_closest_neighbours
         self.time_res = time_res
 
         self.path_to_rainfall_files = path_to_rainfall_files
@@ -61,7 +63,7 @@ class NearbyRainfallDataLoader:
             station_id_col=self.station_id_col,
             distance_threshold=self.distance_threshold_km,
             min_overlap_days=self.min_overlap_days,
-            n_closest=self.n_closest,
+            n_closest=self.n_closest_neighbours,
             start_datetime_col=self.start_date_col,
             end_datetime_col=self.end_date_col,
         )
