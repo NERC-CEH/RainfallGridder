@@ -31,7 +31,7 @@ class QualityController:
         smallest_rainfall_amount: int | float,
         min_n_neighbours: int,
         qc_framework: str,
-        nearby_rainfall_data_loader_kwargs: dict = {}  
+        nearby_rainfall_data_loader_kwargs: dict = {},
     ):
         """
         Quality control part of gridded workflow.
@@ -77,7 +77,9 @@ class QualityController:
             self.qc_kwargs, self.qc_methods_to_run = self.set_up_intenseqc_framework()
 
         else:
-            raise ValueError(f"QC framework: '{self.qc_framework}' not recognised, please select from: 'intenseqc_rulebase_only'")
+            raise ValueError(
+                f"QC framework: '{self.qc_framework}' not recognised, please select from: 'intenseqc_rulebase_only'"
+            )
 
         if "latitude" not in rainfall_metadata.columns or "longitude" not in rainfall_metadata.columns:
             self.rainfall_metadata = self._add_latlon_to_rainfall_metadata(rainfall_metadata)
@@ -118,18 +120,18 @@ class QualityController:
         # begin loop
         for ind, station_id in enumerate(unique_station_ids):
             nearby_gauge_loader = NearbyRainfallDataLoader(
-                    metadata=self.rainfall_metadata,
-                    station_id=station_id,
-                    date_time_col=self.date_time_col,
-                    precipitation_col=self.precipitation_col,
-                    station_id_col=self.station_id_col,
-                    start_datetime_col=self.start_date_col,
-                    end_datetime_col=self.end_date_col,
-                    min_overlap_days=self.min_n_timesteps/time_res_to_n_time_steps_in_day[self.time_res],
-                    rainfall_data_source='df',
-                    rainfall_data_pl=self.rainfall_data,
-                    time_res=self.time_res,
-                    **self.nearby_rainfall_data_loader_kwargs,
+                metadata=self.rainfall_metadata,
+                station_id=station_id,
+                date_time_col=self.date_time_col,
+                precipitation_col=self.precipitation_col,
+                station_id_col=self.station_id_col,
+                start_datetime_col=self.start_date_col,
+                end_datetime_col=self.end_date_col,
+                min_overlap_days=self.min_n_timesteps / time_res_to_n_time_steps_in_day[self.time_res],
+                rainfall_data_source="df",
+                rainfall_data_pl=self.rainfall_data,
+                time_res=self.time_res,
+                **self.nearby_rainfall_data_loader_kwargs,
             )
 
             nearby_metadata = nearby_gauge_loader.nearby_metadata
@@ -139,7 +141,7 @@ class QualityController:
         qc_kwargs = {
             "QC2": {"k": 10},
             "shared": {
-                "time_res": self.time_res  ,
+                "time_res": self.time_res,
                 "smallest_measurable_rainfall_amount": self.smallest_rainfall_amount,
                 "wet_threshold": 1.0,
                 "min_n_neighbours": self.min_n_neighbours,

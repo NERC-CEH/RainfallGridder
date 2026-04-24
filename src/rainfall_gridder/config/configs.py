@@ -9,13 +9,13 @@ def get_ceh_gear_15m_CEH_GEAR_based_kwargs():
         "n_hours": 96,
         "min_n_timesteps": 96,  # TODO: change
         "time_res": "15m",
-        "min_n_neighbours": 7, 
-        "n_closest_neighbours" : 10,
+        "min_n_neighbours": 7,
+        "n_closest_neighbours": 10,
         "qc_framework": "intenseqc_rulebase_only",
         "nearby_rainfall_data_loader_kwargs": {
             "distance_threshold_km": 50,
-            "n_closest_neighbours": 10 # TODO: how many neighbours are needed for QC check
-        } 
+            "n_closest_neighbours": 10,  # TODO: how many neighbours are needed for QC check
+        },
     }
 
 
@@ -27,10 +27,10 @@ def get_ceh_gear_15m_HadUK_Grid_based_kwargs():
         "n_hours": 96,
         "min_n_timesteps": 96,  # TODO: change
         "time_res": "15m",
-        "n_closest_neighbours" : 10,
+        "n_closest_neighbours": 10,
         "qc_framework": "intenseqc_rulebase_only",
         "nearby_rainfall_data_loader_kwargs": {
             "distance_threshold_km": 50,
-            "n_closest_neighbours": 10 # TODO: how many neighbours are needed for QC check
-        } 
+            "n_closest_neighbours": 10,  # TODO: how many neighbours are needed for QC check
+        },
     }

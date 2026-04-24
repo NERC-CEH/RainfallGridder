@@ -31,7 +31,7 @@ class NearbyRainfallDataLoader:
         time_res:
             Resolution of data (i.e. hourly or 15 min denoted: '1h' or '15m')
         n_closest_neighbours:
-            Will get the top-n closest neighbours by distance 
+            Will get the top-n closest neighbours by distance
 
         """
 
