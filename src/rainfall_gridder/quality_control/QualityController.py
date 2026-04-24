@@ -26,6 +26,8 @@ class QualityController:
         input_crs: str,
         min_n_timesteps: int,
         time_res: str,
+        smallest_rainfall_amount: int | float,
+        min_n_neighbours: int,
     ):
         """
         Quality control part of gridded workflow.
@@ -42,9 +44,11 @@ class QualityController:
             Minimum number of timesteps needed in rainfall_data to be considered valid
         time_res:
             Resolution of data (i.e. hourly or 15 min denoted: '1h' or '15m')
+        smallest_rainfall_amount:
+            Smallest measurable rainfall amount
+        min_n_neighbours:
+            Minimum number of nearby rain gauges allowed for neighbourhood QC checks.
 
-        Returns
-        -------
         """
         self.station_id_col = station_id_col
         self.station_name_col = station_name_col
@@ -55,6 +59,8 @@ class QualityController:
         self.input_crs = self._validate_input_crs(input_crs)
         self.min_n_timesteps = min_n_timesteps
         self.time_res = self._validate_time_res(time_res)
+        self.smallest_rainfall_amount = smallest_rainfall_amount
+        self.min_n_neighbours = min_n_neighbours
 
         if "latitude" not in rainfall_metadata.columns or "longitude" not in rainfall_metadata.columns:
             self.rainfall_metadata = self._add_latlon_to_rainfall_metadata(rainfall_metadata)
@@ -95,14 +101,17 @@ class QualityController:
         # begin loop
         for ind, station_id in enumerate(unique_station_ids):
             nearby_gauge_loader = NearbyRainfallDataLoader(
-                metadata=self.rainfall_metadata,
-                station_id=station_id,
-                station_id_col=self.station_id_col,
-                start_datetime_col=self.start_date_col,
-                end_datetime_col=self.end_date_col,
-                min_overlap_days=self.min_n_timesteps
-                / time_res_to_n_time_steps_in_day[self.time_res],  # TODO check this needs to be days
-                rainfall_data_source="df",
+                    metadata=self.rainfall_metadata,
+                    station_id=station_id,
+                    date_time_col=DATE_TIME_COL,
+                    precipitation_col=PRECIPITATION_COL,
+                    station_id_col=STATION_ID_COL,
+                    start_datetime_col=START_DATE_COL,
+                    end_datetime_col=END_DATE_COL,
+                    min_overlap_days=30*N_MONTHS_REQUIRED,
+                    rainfall_data_source='parquet',
+                    path_to_rainfall_files=TEST_OUTPUT_DIR / "data", 
+                    time_res=TIME_RES
             )
             nearby_metadata = nearby_gauge_loader.nearby_metadata
             nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
