@@ -19,6 +19,8 @@ class QualityController:
         rainfall_metadata: pl.DataFrame,
         station_id_col: str,
         station_name_col: str,
+        date_time_col: str,
+        precipitation_col: str,
         easting_col: str,
         northing_col: str,
         start_date_col: str,
@@ -28,6 +30,7 @@ class QualityController:
         time_res: str,
         smallest_rainfall_amount: int | float,
         min_n_neighbours: int,
+        qc_framework: str,
     ):
         """
         Quality control part of gridded workflow.
@@ -48,10 +51,13 @@ class QualityController:
             Smallest measurable rainfall amount
         min_n_neighbours:
             Minimum number of nearby rain gauges allowed for neighbourhood QC checks.
-
+        qc_framework:
+            QC framework to run (see rainfallqc.qc_frameworks/inbuilt_qc_frameworks for options or build your own by looking at RainfallQC docs)
         """
         self.station_id_col = station_id_col
         self.station_name_col = station_name_col
+        self.date_time_col = date_time_col
+        self.precipitation_col = precipitation_col
         self.easting_col = easting_col
         self.northing_col = northing_col
         self.start_date_col = start_date_col
@@ -61,6 +67,13 @@ class QualityController:
         self.time_res = self._validate_time_res(time_res)
         self.smallest_rainfall_amount = smallest_rainfall_amount
         self.min_n_neighbours = min_n_neighbours
+        self.qc_framework = qc_framework
+
+        if self.qc_framework == "intenseqc_rulebase_only":
+            self.qc_kwargs, self.qc_methods_to_run = self.set_up_intenseqc_framework()
+
+        else:
+            raise ValueError(f"QC framework: '{self.qc_framework}' not recognised, please select from: 'intenseqc_rulebase_only'")
 
         if "latitude" not in rainfall_metadata.columns or "longitude" not in rainfall_metadata.columns:
             self.rainfall_metadata = self._add_latlon_to_rainfall_metadata(rainfall_metadata)
@@ -103,11 +116,11 @@ class QualityController:
             nearby_gauge_loader = NearbyRainfallDataLoader(
                     metadata=self.rainfall_metadata,
                     station_id=station_id,
-                    date_time_col=DATE_TIME_COL,
-                    precipitation_col=PRECIPITATION_COL,
-                    station_id_col=STATION_ID_COL,
-                    start_datetime_col=START_DATE_COL,
-                    end_datetime_col=END_DATE_COL,
+                    date_time_col=self.date_time_col,
+                    precipitation_col=self.precipitation_col,
+                    station_id_col=self.station_id_col,
+                    start_datetime_col=self.start_date_col,
+                    end_datetime_col=self.end_date_col,
                     min_overlap_days=30*N_MONTHS_REQUIRED,
                     rainfall_data_source='parquet',
                     path_to_rainfall_files=TEST_OUTPUT_DIR / "data", 
@@ -115,3 +128,20 @@ class QualityController:
             )
             nearby_metadata = nearby_gauge_loader.nearby_metadata
             nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
+
+    def set_up_intenseqc_framework(self) -> tuple[dict, list]:
+        qc_kwargs = {
+            "QC2": {"k": 10},
+            "shared": {
+                "time_res": self.time_res  ,
+                "smallest_measurable_rainfall_amount": self.smallest_rainfall_amount,
+                "wet_threshold": 1.0,
+                "min_n_neighbours": self.min_n_neighbours,
+                "n_neighbours_ignored": 0,
+                "accumulation_multiplying_factor": 2.0,
+            },
+        }
+
+        qc_methods_to_run = ["QC2", "QC10", "QC11", "QC12", "QC13", "QC14", "QC15", "QC17", "QC19", "QC20"]
+
+        return qc_kwargs, qc_methods_to_run

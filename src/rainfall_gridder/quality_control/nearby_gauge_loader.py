@@ -12,8 +12,8 @@ class NearbyRainfallDataLoader:
         station_id_col: str,
         precipitation_col: str,
         date_time_col: str,
-        start_datetime_col: str,
-        end_datetime_col: str,
+        start_date_col: str,
+        end_date_col: str,
         min_overlap_days: int,
         time_res: str,
         path_to_rainfall_files: None = None,
@@ -38,8 +38,8 @@ class NearbyRainfallDataLoader:
         self.station_id_col = station_id_col
         self.precipitation_col = precipitation_col
         self.date_time_col = date_time_col
-        self.start_datetime_col = start_datetime_col
-        self.end_datetime_col = end_datetime_col
+        self.start_date_col = start_date_col
+        self.end_date_col = end_date_col
         self.distance_threshold = distance_threshold
         self.min_overlap_days = min_overlap_days
         self.n_closest = n_closest
@@ -62,8 +62,8 @@ class NearbyRainfallDataLoader:
             distance_threshold=self.distance_threshold,
             min_overlap_days=self.min_overlap_days,
             n_closest=self.n_closest,
-            start_datetime_col=self.start_datetime_col,
-            end_datetime_col=self.end_datetime_col,
+            start_datetime_col=self.start_date_col,
+            end_datetime_col=self.end_date_col,
         )
 
         return metadata.filter(
