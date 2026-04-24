@@ -2,6 +2,7 @@ from pathlib import Path
 import polars as pl
 import rainfallqc
 
+from rainfall_gridder.quality_control.apply_intenseQC_rulebase import apply_intenseQC_rulebase
 from rainfall_gridder.quality_control.nearby_rainfall_data_loader import NearbyRainfallDataLoader
 from rainfall_gridder.utils import spatial_utils
 
@@ -239,6 +240,93 @@ class QualityController:
                 if self.verbose:
                     print(station_id, e, '\n')
                 continue
+            
+            # Add flags to lists
+            # join all flags together for the given target rain gauge
+            all_flags = {}
+            all_flags["all_flags_by_row"] = nearby_rainfall_data[
+                "time", station_id
+            ]
+            for qc in qc_result:
+                if isinstance(qc_result[qc], pl.DataFrame):
+                    try:
+                        all_flags["all_flags_by_row"] = all_flags["all_flags_by_row"].join(
+                            qc_result[qc], on="time"
+                        )
+                    except Exception as e:
+                        print(e, station_id)
+                else:
+                    all_flags[qc] = qc_result[qc]
+
+            # Calculate summary statistics of flags
+            all_flags["all_flags_by_row"] = all_flags["all_flags_by_row"].with_columns(
+                pl.when(
+                    pl.any_horizontal(
+                        pl.all()
+                        .exclude(["time", station_id])
+                        .fill_null(0.0)
+                        .map_elements(lambda col: col > 0)
+                    )
+                )
+                .then(1)
+                .otherwise(0)
+                .alias("is_flagged")
+            )
+
+            # Count number of flagged rows
+            flagged_rows = (
+                all_flags["all_flags_by_row"]["is_flagged"]
+                .value_counts()
+                .filter(pl.col("is_flagged") == 1)["count"]
+            )
+            not_flagged_rows = (
+                all_flags["all_flags_by_row"]["is_flagged"]
+                .value_counts()
+                .filter(pl.col("is_flagged") == 0)["count"]
+            )
+            total_rows = flagged_rows + not_flagged_rows
+            perc_flagged = (flagged_rows / total_rows) * 100
+            perc_flagged = perc_flagged.item() if perc_flagged.len() == 1 else 0
+            print(f"Station ID: {station_id}\t\tFlag rate: {perc_flagged: .2f}%")
+
+            # add to overall QC summary
+            summary_of_qc = {}
+            summary_of_qc["station_id"] = station_id
+            summary_of_qc["num_nearby_gauges"] = (
+                len(nearby_metadata) - 1
+            )  # do not count the target
+            summary_of_qc["perc_flagged"] = round(perc_flagged, 3)
+            summary_of_qc["total_flagged_rows"] = (
+                flagged_rows[0] if flagged_rows.len() > 0 else 0
+            )
+            summary_of_qc["total_rows"] = len(all_flags["all_flags_by_row"])
+
+            for qc_key in non_rowwise_checks:
+                if isinstance(all_flags[qc_key], list):
+                    # sum number of years flagged
+                    summary_of_qc[non_rowwise_checks_converter[qc_key]] = sum(
+                        item != 0 for item in all_flags[qc_key]
+                    )
+                else:
+                    summary_of_qc[non_rowwise_checks_converter[qc_key]] = all_flags[qc_key]
+
+            for col in all_flags["all_flags_by_row"].columns[2:]:
+                summary_of_qc[col] = len(
+                all_flags["all_flags_by_row"].filter(pl.col(col) > 0).drop_nans()[col]
+                )
+            overall_summary_of_qc[ind] = summary_of_qc
+
+            # Apply rulebase
+            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(all_flags, station_id)
+            if self.verbose:
+                print(f"Station ID: {station_id}\tA total of {all_flags["all_flags_by_row"][station_id].count() - rule_removed_rows[station_id].count()} rows were removed") # some rows may have stayed null
+            ## get back into parquet format that fits with Oracle
+            rule_removed_rows = rule_removed_rows.select(['time', station_id]) # saves memory
+            rule_removed_rows = rule_removed_rows.with_columns(pl.lit(station_id).alias(self.station_id_col))
+            rule_removed_rows = rule_removed_rows.rename({station_id: self.precipitation_col, 'time': self.date_time_col})
+            qcd_data_list[ind] = rule_removed_rows
+            rulebase_summary[ind] = n_rows_removed
+            print('')
 
     def save_qcd_data(self, partition_by_columns: list = None) -> None:
         """
