@@ -1,3 +1,4 @@
+from pathlib import Path
 import polars as pl
 import rainfallqc
 
@@ -27,6 +28,7 @@ class QualityController:
         end_date_col: str,
         input_crs: str,
         min_n_timesteps: int,
+        output_dir: str | Path,
         time_res: str,
         smallest_rainfall_amount: int | float,
         min_n_neighbours: int,
@@ -45,6 +47,8 @@ class QualityController:
             Details of rain gauge data
         input_crs:
             Projection of the east_west and north_south cols of the input data
+        output_dir:
+            Output directory for data files
         min_n_timesteps:
             Minimum number of timesteps needed in rainfall_data to be considered valid
         time_res:
@@ -75,6 +79,7 @@ class QualityController:
         self.min_n_neighbours = min_n_neighbours
         self.qc_framework = qc_framework
         self.nearby_rainfall_data_loader_kwargs = nearby_rainfall_data_loader_kwargs
+        self.output_dir = output_dir
         self.verbose = verbose
 
         if self.qc_framework == "intenseqc_rulebase_only":
@@ -229,11 +234,25 @@ class QualityController:
             )
         )
         if self.verbose:
-            print(f"prepared gauge data available at: {self.output_dir / 'qc_data/'}")
+            print(f"QC'd rainfall data available at: {self.output_dir / 'qc_data/'}")
 
     def save_qcd_metadata(self) -> None:
         if self.qcd_metadata is None:
-            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_final_metadata()")
+            raise RuntimeError("You must call quality_control_data() before save_final_metadata()")
         self.qcd_metadata.write_parquet(self.output_dir / "qcd_metadata.parquet")
         if self.verbose:
-            print(f"prepared gauge metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
+            print(f"QC'd rainfall metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
+
+    def save_summary_of_qc(self) -> None:
+        if self.summary_of_qc is None:
+            raise RuntimeError("You must call quality_control_data() before summary_of_qc()")
+        self.summary_of_qc.write_parquet(self.output_dir / "summary_of_qc.parquet")
+        if self.verbose:
+            print(f"Summary of QC available at: {self.output_dir / 'summary_of_qc.parquet'}")
+
+    def save_qc_rulebase_summary(self) -> None:
+        if self.qc_rulebase_summary is None:
+            raise RuntimeError("You must call quality_control_data() before save_qc_rulebase_summary()")
+        self.qc_rulebase_summary.write_parquet(self.output_dir / "qc_rulebase_summary.parquet")
+        if self.verbose:
+            print(f"Summary of QC rulebase available at: {self.output_dir / 'qc_rulebase_summary.parquet'}")
