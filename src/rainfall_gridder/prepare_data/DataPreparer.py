@@ -66,7 +66,6 @@ class DataPreparer:
         self.gridded_rainfall_col = gridded_rainfall_col
         self.verbose = verbose
 
-
         # Prepare data inputs
         self.rainfall_data = self._prepare_data(rainfall_data)
         self.rainfall_metadata = self._prepare_metadata(rainfall_metadata)

@@ -131,7 +131,6 @@ class QualityController:
         )
         return time_res
 
-
     @classmethod
     def run(
         cls, save_data: bool = True, return_data: bool = False, partition_by_columns: list = None, **kwargs
@@ -169,7 +168,12 @@ class QualityController:
             if quality_controller.verbose:
                 print("Data not saved")
         if return_data:
-            return quality_controller.prepared_data, quality_controller.prepared_metadata
+            return (
+                quality_controller.qcd_data,
+                quality_controller.qcd_metadata,
+                quality_controller.summary_of_qc,
+                quality_controller.qc_rulebase_summary,
+            )
 
     def quality_control_data(self):
         # preallocate the list sizes
