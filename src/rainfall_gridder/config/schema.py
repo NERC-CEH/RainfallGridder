@@ -42,6 +42,7 @@ class WorkflowConfig(BaseModel):
     input_crs: str
     min_n_timesteps: int = 100
     batch_size: int = 5
+    time_res: str
 
     def load_rainfall_data(self) -> pl.DataFrame:
         return pl.read_parquet(self.rainfall_data.path)

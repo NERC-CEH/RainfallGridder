@@ -31,6 +31,7 @@ class QualityController:
         smallest_rainfall_amount: int | float,
         min_n_neighbours: int,
         qc_framework: str,
+        nearby_rainfall_data_loader_kwargs: dict = {}  
     ):
         """
         Quality control part of gridded workflow.
@@ -53,6 +54,8 @@ class QualityController:
             Minimum number of nearby rain gauges allowed for neighbourhood QC checks.
         qc_framework:
             QC framework to run (see rainfallqc.qc_frameworks/inbuilt_qc_frameworks for options or build your own by looking at RainfallQC docs)
+        nearby_rainfall_data_loader_kwargs:
+            Any additional arguments to override the defaults of the nearby data loader i.e. distance_threshold and  n_closest (default is {})
         """
         self.station_id_col = station_id_col
         self.station_name_col = station_name_col
@@ -68,6 +71,7 @@ class QualityController:
         self.smallest_rainfall_amount = smallest_rainfall_amount
         self.min_n_neighbours = min_n_neighbours
         self.qc_framework = qc_framework
+        self.nearby_rainfall_data_loader_kwargs = nearby_rainfall_data_loader_kwargs
 
         if self.qc_framework == "intenseqc_rulebase_only":
             self.qc_kwargs, self.qc_methods_to_run = self.set_up_intenseqc_framework()
@@ -121,11 +125,13 @@ class QualityController:
                     station_id_col=self.station_id_col,
                     start_datetime_col=self.start_date_col,
                     end_datetime_col=self.end_date_col,
-                    min_overlap_days=30*N_MONTHS_REQUIRED,
-                    rainfall_data_source='parquet',
-                    path_to_rainfall_files=TEST_OUTPUT_DIR / "data", 
-                    time_res=TIME_RES
+                    min_overlap_days=self.min_n_timesteps/time_res_to_n_time_steps_in_day[self.time_res],
+                    rainfall_data_source='df',
+                    rainfall_data_pl=self.rainfall_data,
+                    time_res=self.time_res,
+                    **self.nearby_rainfall_data_loader_kwargs,
             )
+
             nearby_metadata = nearby_gauge_loader.nearby_metadata
             nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
 

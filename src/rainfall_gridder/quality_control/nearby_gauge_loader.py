@@ -18,7 +18,7 @@ class NearbyRainfallDataLoader:
         time_res: str,
         path_to_rainfall_files: None = None,
         rainfall_data_pl: None = None,
-        distance_threshold: int = 50,
+        distance_threshold_km: int = 50,
         n_closest: int = 10,
     ):
         """
@@ -40,7 +40,7 @@ class NearbyRainfallDataLoader:
         self.date_time_col = date_time_col
         self.start_date_col = start_date_col
         self.end_date_col = end_date_col
-        self.distance_threshold = distance_threshold
+        self.distance_threshold_km = distance_threshold_km
         self.min_overlap_days = min_overlap_days
         self.n_closest = n_closest
         self.time_res = time_res
@@ -59,7 +59,7 @@ class NearbyRainfallDataLoader:
             metadata,
             target_id=self.station_id,
             station_id_col=self.station_id_col,
-            distance_threshold=self.distance_threshold,
+            distance_threshold=self.distance_threshold_km,
             min_overlap_days=self.min_overlap_days,
             n_closest=self.n_closest,
             start_datetime_col=self.start_date_col,
