@@ -2,7 +2,7 @@ from pathlib import Path
 import polars as pl
 import rainfallqc
 
-from rainfall_gridder.quality_control.nearby_gauge_loader import NearbyRainfallDataLoader
+from rainfall_gridder.quality_control.nearby_rainfall_data_loader import NearbyRainfallDataLoader
 from rainfall_gridder.utils import spatial_utils
 
 
