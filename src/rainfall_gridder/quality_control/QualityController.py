@@ -78,7 +78,7 @@ class QualityController:
         self.verbose = verbose
 
         if self.qc_framework == "intenseqc_rulebase_only":
-            self.qc_kwargs, self.qc_methods_to_run = self.set_up_intenseqc_framework()
+            self.qc_kwargs, self.qc_methods_to_run = self._set_up_intenseqc_framework()
 
         else:
             raise ValueError(
@@ -102,6 +102,23 @@ class QualityController:
             north_south_col_out="longitude",
         )
 
+    def _set_up_intenseqc_framework(self) -> tuple[dict, list]:
+        qc_kwargs = {
+            "QC2": {"k": 10},
+            "shared": {
+                "time_res": self.time_res,
+                "smallest_measurable_rainfall_amount": self.smallest_rainfall_amount,
+                "wet_threshold": 1.0,
+                "min_n_neighbours": self.min_n_neighbours,
+                "n_neighbours_ignored": 0,
+                "accumulation_multiplying_factor": 2.0,
+            },
+        }
+
+        qc_methods_to_run = ["QC2", "QC10", "QC11", "QC12", "QC13", "QC14", "QC15", "QC17", "QC19", "QC20"]
+
+        return qc_kwargs, qc_methods_to_run
+
     def _validate_input_crs(self, input_crs: str) -> str:
         assert input_crs.startswith("EPSG:"), (
             f"Invalid input_crs {input_crs}, needs to begin with 'EPSG:' like 'EPSG:4326'."
@@ -113,6 +130,46 @@ class QualityController:
             f"'{time_res}' not in accepted time resolutions for data. Accepted time res: {time_res_to_n_time_steps_in_day.keys()}"
         )
         return time_res
+
+
+    @classmethod
+    def run(
+        cls, save_data: bool = True, return_data: bool = False, partition_by_columns: list = None, **kwargs
+    ) -> None | tuple[pl.DataFrame, pl.DataFrame]:
+        """
+        Run the quality controller and return and/or save the prepared data.
+
+        Parameters
+        ----------
+        save_data:
+            Whether to save data to output directory (default True)
+        return_data:
+            Whether to return dataframes (default False)
+        partition_by_columns:
+            List of columns to partition the parquet files by if saving outputs
+
+        Returns
+        -------
+        qc_data:
+            Data run through algorithm
+        qc_metadata:
+            Metadata of data run through algorithm
+
+        """
+        quality_controller = cls(**kwargs)
+        if quality_controller.verbose:
+            print("Quality controlling data for gridder")
+        quality_controller.quality_control_data()
+        if save_data:
+            if quality_controller.verbose:
+                print(f"Saving data to {quality_controller.output_dir}")
+            quality_controller.save_qcd_data(partition_by_columns)
+            quality_controller.save_qcd_metadata()
+        else:
+            if quality_controller.verbose:
+                print("Data not saved")
+        if return_data:
+            return quality_controller.prepared_data, quality_controller.prepared_metadata
 
     def quality_control_data(self):
         # preallocate the list sizes
@@ -141,19 +198,38 @@ class QualityController:
             nearby_metadata = nearby_gauge_loader.nearby_metadata
             nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
 
-    def set_up_intenseqc_framework(self) -> tuple[dict, list]:
-        qc_kwargs = {
-            "QC2": {"k": 10},
-            "shared": {
-                "time_res": self.time_res,
-                "smallest_measurable_rainfall_amount": self.smallest_rainfall_amount,
-                "wet_threshold": 1.0,
-                "min_n_neighbours": self.min_n_neighbours,
-                "n_neighbours_ignored": 0,
-                "accumulation_multiplying_factor": 2.0,
-            },
-        }
+    def save_qcd_data(self, partition_by_columns: list = None) -> None:
+        """
+        Save data that has been quality controlled for gridding.
 
-        qc_methods_to_run = ["QC2", "QC10", "QC11", "QC12", "QC13", "QC14", "QC15", "QC17", "QC19", "QC20"]
+        Parameters
+        ----------
+        partition_by_columns:
+            Columns that decide the partitioning of the output parquet file structure (default is station_id_col)
+        """
+        if partition_by_columns is None:
+            partition_by_columns = [self.station_id_col]
 
-        return qc_kwargs, qc_methods_to_run
+        if self.qcd_data is None:
+            raise RuntimeError("You must call quality_control_data() before save_qcd_data()")
+
+        assert len(self.qcd_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
+            "Problem with metadata as duplicate filepaths"
+        )
+
+        # Save partitioned parquet file
+        (
+            self.qcd_data.sort(self.date_time_col).write_parquet(
+                self.output_dir / "qc_data",
+                partition_by=partition_by_columns,
+            )
+        )
+        if self.verbose:
+            print(f"prepared gauge data available at: {self.output_dir / 'qc_data/'}")
+
+    def save_qcd_metadata(self) -> None:
+        if self.qcd_metadata is None:
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_final_metadata()")
+        self.qcd_metadata.write_parquet(self.output_dir / "qcd_metadata.parquet")
+        if self.verbose:
+            print(f"prepared gauge metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
