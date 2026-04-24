@@ -316,7 +316,8 @@ class QualityController:
         self.summary_of_qc = pl.DataFrame(overall_summary_of_qc)
         self.qcd_data = pl.concat([qcd_data for qcd_data in qcd_data_list if qcd_data is not None])
 
-        updated_final_station_metadata_df = self.rainfall_metadata.filter(
+        # double check
+        self.qcd_metadata = self.rainfall_metadata.filter(
             pl.col(self.station_id_col)
             .cast(pl.String)
             .is_in(self.summary_of_qc[self.station_id_col].drop_nulls().to_list())
