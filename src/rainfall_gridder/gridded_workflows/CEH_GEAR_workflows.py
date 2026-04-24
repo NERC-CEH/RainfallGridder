@@ -2,6 +2,7 @@ from pathlib import Path
 import xarray as xr
 from rainfall_gridder.config.schema import ColumnConfig, WorkflowConfig
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
+from rainfall_gridder.quality_control.QualityController import QualityController
 
 
 def ceh_gear_subdaily_workflow(
@@ -65,7 +66,7 @@ def ceh_gear_subdaily_workflow(
     # Start workflow
     # 1. Prepare data
     print("1. Prepare data")
-    data, metadata = DataPreparer.run(
+    rainfall_data, rainfall_metadata = DataPreparer.run(
         rainfall_data=rainfall_data,
         rainfall_metadata=rainfall_metadata,
         station_id_col=config.data_columns.station_id_col,
@@ -88,7 +89,27 @@ def ceh_gear_subdaily_workflow(
 
     # 2. Quality Control
     print("2. Quality control")
-    # data, metadata = apply_intenseQC_rulebase(data, metadata, config.output_dir)
+    data, metadata = QualityController.run(
+        rainfall_data,
+        rainfall_metadata,
+        station_id_col=config.data_columns.station_id_col,
+        station_name_col=config.data_columns.station_name_col,
+        date_time_col=config.data_columns.date_time_col,
+        precipitation_col=config.data_columns.precipitation_col,
+        easting_col=config.data_columns.easting_col,
+        northing_col=config.data_columns.northing_col,
+        start_date_col=config.data_columns.start_date_col,
+        end_date_col=config.data_columns.end_date_col,
+        input_crs=config.input_crs,
+        min_n_timesteps=config.min_n_timesteps,
+        time_res=config.time_res,
+        smallest_rainfall_amount=config.smallest_rainfall_amount,
+        min_n_neighbours=config.min_n_neighbours,
+        qc_framework=config.qc_framework,
+        nearby_rainfall_data_loader_kwargs=config.nearby_rainfall_data_loader_kwargs,
+        save_data=True,
+        return_data=True,
+    )
 
     # 3. Generate grids
     print("3. Generate grids")

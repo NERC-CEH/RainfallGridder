@@ -48,6 +48,8 @@ class DataPreparer:
             Output directory for data files
         min_n_timesteps:
             Minimum number of timesteps needed in rainfall_data to be considered valid
+        verbose:
+            Whether to print progress as algorithm is run (default: False)
 
         """
         self.station_id_col = station_id_col
@@ -60,9 +62,10 @@ class DataPreparer:
         self.northing_col = northing_col
         self.rainfall_offset_hours = rainfall_offset_hours
         self.output_dir = output_dir
-        self.verbose = verbose
         self.min_n_timesteps = min_n_timesteps
         self.gridded_rainfall_col = gridded_rainfall_col
+        self.verbose = verbose
+
 
         # Prepare data inputs
         self.rainfall_data = self._prepare_data(rainfall_data)

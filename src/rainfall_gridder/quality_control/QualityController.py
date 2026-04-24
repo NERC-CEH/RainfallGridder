@@ -32,6 +32,7 @@ class QualityController:
         min_n_neighbours: int,
         qc_framework: str,
         nearby_rainfall_data_loader_kwargs: dict = {},
+        verbose: bool = False,
     ):
         """
         Quality control part of gridded workflow.
@@ -56,6 +57,8 @@ class QualityController:
             QC framework to run (see rainfallqc.qc_frameworks/inbuilt_qc_frameworks for options or build your own by looking at RainfallQC docs)
         nearby_rainfall_data_loader_kwargs:
             Any additional arguments to override the defaults of the nearby data loader i.e. distance_threshold and  n_closest (default is {})
+        verbose:
+            Whether to print progress as algorithm is run (default: False)
         """
         self.station_id_col = station_id_col
         self.station_name_col = station_name_col
@@ -72,6 +75,7 @@ class QualityController:
         self.min_n_neighbours = min_n_neighbours
         self.qc_framework = qc_framework
         self.nearby_rainfall_data_loader_kwargs = nearby_rainfall_data_loader_kwargs
+        self.verbose = verbose
 
         if self.qc_framework == "intenseqc_rulebase_only":
             self.qc_kwargs, self.qc_methods_to_run = self.set_up_intenseqc_framework()
