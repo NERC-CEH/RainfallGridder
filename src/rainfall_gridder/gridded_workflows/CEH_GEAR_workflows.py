@@ -133,8 +133,8 @@ def ceh_gear_subdaily_workflow(
         verbose=config.verbose,
         correlation_threshold=config.correlation_threshold,
         output_dir=config.output_dir,
-        save_data=True,
-        return_data=True,
+        save_metadata=True,
+        return_metadata=True,
     )
 
     # 4. Generate grids

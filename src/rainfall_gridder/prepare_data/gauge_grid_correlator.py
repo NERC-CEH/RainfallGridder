@@ -260,7 +260,7 @@ class BatchGaugeVsGriddedCorrelator(GaugeVsGriddedCorrelator):
         self.corrd_metadata = self.gauge_metadata.filter(~pl.col(self.station_id_col).is_in(station_ids_to_remove))
 
     @classmethod
-    def run(cls, save_metadata: bool, return_metadata: bool, output_dir: Path, **kwargs) -> None | pl.DataFrame:
+    def run(cls, save_metadata: bool, return_metadata: bool, **kwargs) -> None | pl.DataFrame:
         """
         Run the correlator on a list of station IDs and return and/or save the prepared data.
 
@@ -279,7 +279,7 @@ class BatchGaugeVsGriddedCorrelator(GaugeVsGriddedCorrelator):
         """
         batch_correlator = cls(**kwargs)
         if batch_correlator.verbose:
-            print("Removing gauges not correlated to nearest gridded data for gridder")
+            print("Starting Gauge vs Gridded Correlator")
         batch_correlator.run_correlator()
         if save_metadata:
             if batch_correlator.verbose:
