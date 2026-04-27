@@ -171,6 +171,8 @@ class QualityController:
                 print(f"Saving data to {quality_controller.output_dir}")
             quality_controller.save_qcd_data(partition_by_columns)
             quality_controller.save_qcd_metadata()
+            quality_controller.save_summary_of_qc()
+            quality_controller.save_qc_rulebase_summary()
         else:
             if quality_controller.verbose:
                 print("Data not saved")
