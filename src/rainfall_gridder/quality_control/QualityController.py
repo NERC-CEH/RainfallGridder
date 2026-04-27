@@ -253,7 +253,7 @@ class QualityController:
             )
 
             # Apply rulebase
-            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id)
+            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id, time_step=self.time_res)
             if self.verbose:
                 print(
                     f"Station ID: {station_id}\tA total of {qc_summariser.all_flags['all_flags_by_row'][station_id].count() - rule_removed_rows[station_id].count()} rows were removed"
@@ -455,6 +455,8 @@ class QCSummariser:
         summary_of_qc["total_rows"] = len(self.all_flags["all_flags_by_row"])
 
         for qc_key in NON_ROWWISE_QC_CHECKS:
+            if qc_key not in self.all_flags:
+                continue
             if isinstance(self.all_flags[qc_key], list):
                 # sum number of years flagged
                 summary_of_qc[NON_ROWWISE_QC_CONVERTER[qc_key]] = sum(item != 0 for item in self.all_flags[qc_key])
