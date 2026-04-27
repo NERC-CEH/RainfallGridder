@@ -242,7 +242,7 @@ class QualityController:
                 continue
 
             # Summarise QC flags into statistics
-            qc_summariser = QCSummariser(station_id, nearby_metadata, nearby_rainfall_data, qc_result)
+            qc_summariser = QCSummariser(station_id, nearby_metadata, nearby_rainfall_data, qc_result, verbose=self.verbose)
 
             # Apply rulebase
             rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id)
