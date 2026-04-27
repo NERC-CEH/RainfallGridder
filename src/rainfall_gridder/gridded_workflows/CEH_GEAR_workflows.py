@@ -143,7 +143,7 @@ def ceh_gear_subdaily_workflow(
     # 4. Generate grids
     print("4. Generate grids and save to Zarr")
     all_days = batch_saving_utils.get_all_days_in_input(
-        corrd_rainfall_metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
+        corrd_rainfall_metadata, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
     )
     output_grid = get_ceh_gear_data.get_uk_mask_haduk_coords()
 
