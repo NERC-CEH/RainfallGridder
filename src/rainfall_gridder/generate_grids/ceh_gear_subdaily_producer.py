@@ -28,6 +28,13 @@ class CEHGEARSubDailyProducer:
         date_col: str,
         hour_at_start_of_day: int,
     ):
+        """
+        CEH-GEAR subdaily producer.
+
+        Parameters
+        ----------
+
+        """
         assert data_resolution in ["1h", "15m"], (
             f"Data resolution needs to be either '15m' or '1h', currently: {data_resolution}."
         )

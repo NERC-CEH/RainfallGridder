@@ -68,7 +68,7 @@ class GaugeVsGriddedCorrelator:
             )
             .agg(pl.col(self.precipitation_col).sum())
         )
-    
+
     def _load_daily_nearest_gridded_daily(self, nearest_gridded_daily: xr.Dataset) -> xr.Dataset:
         """
         Load daily gridded data.

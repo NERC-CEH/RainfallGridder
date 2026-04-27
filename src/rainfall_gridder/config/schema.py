@@ -48,6 +48,7 @@ class WorkflowConfig(BaseModel):
     correlation_threshold: float
     min_n_timesteps: int = 100
     batch_size: int = 5
+    output_zarr_dir: Path = None
 
     def load_rainfall_data(self) -> pl.DataFrame:
         return pl.read_parquet(self.rainfall_data.path)

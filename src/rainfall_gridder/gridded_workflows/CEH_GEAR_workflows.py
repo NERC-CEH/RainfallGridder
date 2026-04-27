@@ -4,6 +4,7 @@ from rainfall_gridder.config.schema import ColumnConfig, WorkflowConfig
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control.QualityController import QualityController
 from rainfall_gridder.prepare_data.gauge_grid_correlator import BatchGaugeVsGriddedCorrelator
+from rainfall_gridder.utils import batch_saving_utils
 
 
 def ceh_gear_subdaily_workflow(
@@ -116,7 +117,7 @@ def ceh_gear_subdaily_workflow(
     # 3. Correlate gauge and gridded data (agg. to daily)
     print("3. Correlate gauge data to gridded data")
     station_ids_to_correlate = qcd_rainfall_metadata[config.data_columns.station_id_col].unique()
-    qcd_rainfall_metadata = BatchGaugeVsGriddedCorrelator.run(
+    corrd_rainfall_metadata = BatchGaugeVsGriddedCorrelator.run(
         gauge_data=qcd_rainfall_data,
         gauge_metadata=qcd_rainfall_metadata,
         gridded_rainfall_data=gridded_rainfall,
@@ -139,12 +140,12 @@ def ceh_gear_subdaily_workflow(
 
     # 4. Generate grids
     print("4. Generate grids")
-    # all_days = batch_saving_utils.get_all_days(
-    #     metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
-    # )
+    all_days = batch_saving_utils.get_all_days(
+        corrd_rainfall_metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
+    )
 
     # for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
-    #     # batch_results = []
+    #     batch_results = []
     #     for time_step in batch_days:
     #         # one_day_gridded_daily = gridded_daily.sel(time=time_step.replace(minute=0, second=0, microsecond=0)).where(uk_mask) # subset_to_uk_mask to work with map multiplication
     #         # ceh_gear_sub_daily_producer = CEHGEARSubDailyProducer(rainfall_data, metadata, time_step, data_resolution=TIME_RES,
@@ -158,4 +159,3 @@ def ceh_gear_subdaily_workflow(
     #     pass
 
     # 4. Save outputs
-    return
