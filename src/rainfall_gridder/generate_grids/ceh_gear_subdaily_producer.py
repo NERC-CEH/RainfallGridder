@@ -21,7 +21,7 @@ class CEHGEARSubDailyProducer:
         rain_gauge_metadata: pl.DataFrame,
         time_step: datetime.datetime,
         data_resolution: str,
-        rain_gauge_col: str,
+        precipitation_col: str,
         easting_col: str,
         northing_col: str,
         station_id_col: str,
@@ -41,7 +41,7 @@ class CEHGEARSubDailyProducer:
         self.rain_gauge_metadata = rain_gauge_metadata
         self.time_step = time_step
         self.data_resolution = data_resolution
-        self.rain_gauge_col = rain_gauge_col
+        self.precipitation_col = precipitation_col
         self.easting_col = easting_col
         self.northing_col = northing_col
         self.station_id_col = station_id_col
@@ -50,7 +50,7 @@ class CEHGEARSubDailyProducer:
         self.one_day_rain_gauge_data = self._get_one_day_rain_gauge_data(rain_gauge_data)
         self.one_day_daily_totals = self._get_daily_gauge_totals()
         self.gauge_daily_info = self._get_daily_info()
-        self.gauge_daily_totals = self.gauge_daily_info[self.rain_gauge_col].to_numpy()
+        self.gauge_daily_totals = self.gauge_daily_info[self.precipitation_col].to_numpy()
 
     def _get_one_day_rain_gauge_data(
         self,
@@ -79,8 +79,8 @@ class CEHGEARSubDailyProducer:
             self.one_day_rain_gauge_data.group_by(self.station_id_col)
             .agg(
                 [
-                    pl.col(self.rain_gauge_col).sum().alias(self.rain_gauge_col),
-                    pl.col(self.rain_gauge_col).count().alias("_timestep_count"),
+                    pl.col(self.precipitation_col).sum().alias(self.precipitation_col),
+                    pl.col(self.precipitation_col).count().alias("_timestep_count"),
                 ]
             )
             .filter(pl.col("_timestep_count") >= n_time_steps)
@@ -97,7 +97,7 @@ class CEHGEARSubDailyProducer:
             pl.struct([pl.col(self.easting_col), pl.col(self.northing_col)]).alias("points")
         )
         # Drop all daily totals that are NaN from distance calculation
-        gauge_daily_info = gauge_daily_info.drop_nans(subset=[self.rain_gauge_col])
+        gauge_daily_info = gauge_daily_info.drop_nans(subset=[self.precipitation_col])
 
         # Important in current method that site_id is sorted as we are converting this data to numpy arrays
         return gauge_daily_info.sort(self.station_id_col)
@@ -203,7 +203,7 @@ class CEHGEARSubDailyProducer:
             assert len(gauge_one_timestep) == gauge_points.shape[0], (
                 "The number of gauges with data need to be the same as number of gauges"
             )
-            gauge_one_timestep_rainfall = gauge_one_timestep[self.rain_gauge_col].to_numpy()
+            gauge_one_timestep_rainfall = gauge_one_timestep[self.precipitation_col].to_numpy()
 
             gauge_timestep_interpolator = scipy.interpolate.NearestNDInterpolator(
                 gauge_points, gauge_one_timestep_rainfall

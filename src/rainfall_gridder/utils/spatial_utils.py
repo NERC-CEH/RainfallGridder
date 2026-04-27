@@ -13,6 +13,21 @@ def calculate_gauge_to_grid_centre_distance(x_grid_centre, y_grid_centre, gauge_
     return np.sqrt((x_grid_centre - gauge_x) ** 2 + (y_grid_centre - gauge_y) ** 2)
 
 
+def clip_grid_to_bounds_with_buffer(
+    gridded_data: xr.Dataset,
+    min_easting: float,
+    max_easting: float,
+    easting_buffer: float,
+    min_northing: float,
+    max_northing: float,
+    northing_buffer: float,
+) -> xr.Dataset:
+    return gridded_data.sel(
+        x=slice(min_easting - easting_buffer, max_easting + easting_buffer),
+        y=slice(min_northing - northing_buffer, max_northing + northing_buffer),
+    )
+
+
 def crs_to_crs(
     df: pl.DataFrame,
     crs_in: int | str,
