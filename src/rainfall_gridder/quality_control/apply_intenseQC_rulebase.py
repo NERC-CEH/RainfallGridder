@@ -11,6 +11,7 @@ def apply_rowbased_rulebase_to_one_station(
     flags_by_row: pl.DataFrame,
     rules_to_apply: dict,
     station_id: str,
+    time_step: str,
     return_counts: bool = True,
 ) -> pl.DataFrame | tuple[pl.DataFrame, dict]:
     """
@@ -21,7 +22,7 @@ def apply_rowbased_rulebase_to_one_station(
     rule_removed_rows = flags_by_row
     for rule_id, rule in rules_to_apply.items():
         if callable(rule):
-            rule = rule(station_id)
+            rule = rule(station_id, TIME_STEP_CONVERSION[time_step])
         rule_removed_rows = apply_conditional_rule(rule_removed_rows, rule, station_id)
         num_rows_removed_by_rule[rule_id] = flags_by_row.filter(rule).height
     if return_counts:
@@ -77,6 +78,7 @@ def apply_intenseQC_rulebase(
         all_flags["all_flags_by_row"],
         get_rulebase_conditions(time_step),
         station_id,
+        time_step=time_step,
         return_counts=return_counts,
     )
 
