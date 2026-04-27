@@ -98,7 +98,7 @@ class QualityController:
             self.rainfall_metadata = rainfall_metadata
         self.rainfall_data = rainfall_data
 
-    def _add_latlon_to_rainfall_metaddata(self, rainfall_metadata: pl.DataFrame) -> pl.DataFrame:
+    def _add_latlon_to_rainfall_metadata(self, rainfall_metadata: pl.DataFrame) -> pl.DataFrame:
         return spatial_utils.crs_to_crs(
             rainfall_metadata,
             crs_in=self.input_crs,
