@@ -27,6 +27,7 @@ class CEHGEARSubDailyProducer:
         northing_col: str,
         date_time_col: str,
         hour_at_start_of_day: int,
+        verbose: bool,
     ):
         """
         CEH-GEAR subdaily producer.
@@ -35,9 +36,7 @@ class CEHGEARSubDailyProducer:
         ----------
 
         """
-        assert time_res in ["1h", "15m"], (
-            f"Data resolution needs to be either '15m' or '1h', currently: {time_res}."
-        )
+        assert time_res in ["1h", "15m"], f"Data resolution needs to be either '15m' or '1h', currently: {time_res}."
         self.rainfall_metadata = rainfall_metadata
         self.time_step = time_step
         self.time_res = time_res
@@ -191,9 +190,7 @@ class CEHGEARSubDailyProducer:
         # 2.1 Format data before partioning and looping through
         # 2.1.1 prefilter out gauge stations not in the day
         station_ids_in_day = self.gauge_daily_info[self.station_id_col].to_list()
-        one_day_rainfall_data = self.one_day_rainfall_data.filter(
-            pl.col(self.station_id_col).is_in(station_ids_in_day)
-        )
+        one_day_rainfall_data = self.one_day_rainfall_data.filter(pl.col(self.station_id_col).is_in(station_ids_in_day))
         one_day_rainfall_data.sort((self.station_id_col, self.date_time_col))
         # 2.1.2 Partition pl.Dataframe into individual time steps
         all_time_steps_gauge_data_groups = one_day_rainfall_data.partition_by(self.date_time_col, as_dict=True)
@@ -245,7 +242,8 @@ class CEHGEARSubDailyProducer:
                 combined_factor_grid = factor_grid.where(cells_to_stat_disag_frac.isnull(), cells_to_stat_disag_frac)
             else:
                 # There are no cells to stat disaggregate
-                print("To remove: there are no cells to stat disagg")
+                if self.verbose:
+                    print("To remove: there are no cells to stat disagg")
                 combined_factor_grid = factor_grid
 
             # set time
