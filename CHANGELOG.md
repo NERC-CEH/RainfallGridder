@@ -3,14 +3,14 @@
 ## [0.0.5] - 2026-04-??
 
 ### Added
+* Add GaugeVsGridCorrelator (part 3 of 4)
 * Fix bugs with QualityController
-
 
 ## [0.0.4] - 2026-04-27
 
 ### Added
 * Edit nearby data loader to work with in memory df or file paths
-* Add QCSummariser class for the QualityController algorithm 
+* Add QualityController and QCSummariser classes (part 2 of 4) 
 
 ## [0.0.3] - 2026-04-26
 
