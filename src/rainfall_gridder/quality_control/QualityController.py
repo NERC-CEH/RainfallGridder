@@ -184,7 +184,9 @@ class QualityController:
 
     def get_nearest_neighbour(self, nearby_rainfall_data_loader, station_id):
         if len(nearby_rainfall_data_loader.nearby_rain_gauge_distances) > 0:
-            return nearby_rainfall_data_loader.nearby_rain_gauge_distances.sort("distance")[0][self.station_id_col].item()
+            return nearby_rainfall_data_loader.nearby_rain_gauge_distances.sort("distance")[0][
+                self.station_id_col
+            ].item()
         else:
             if self.verbose:
                 print(f"Station ID: {station_id} has no neighbours\n")
@@ -235,14 +237,20 @@ class QualityController:
                     qc_framework=self.qc_framework,
                     qc_methods_to_run=self.qc_methods_to_run,
                     qc_kwargs=self.qc_kwargs,
-                    )
+                )
             except Exception as e:
                 if self.verbose:
                     print(station_id, e, "\n")
                 continue
 
             # Summarise QC flags into statistics
-            qc_summariser = QCSummariser(station_id, nearby_metadata, nearby_rainfall_data, qc_result, verbose=self.verbose)
+            qc_summariser = QCSummariser(
+                station_id=station_id,
+                rainfall_data=nearby_rainfall_data,
+                nearby_metadata=nearby_metadata,
+                qc_result=qc_result,
+                verbose=self.verbose,
+            )
 
             # Apply rulebase
             rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id)
