@@ -105,8 +105,8 @@ class QualityController:
             crs_out="EPSG:4326",
             east_west_col_in=self.easting_col,
             north_south_col_in=self.northing_col,
-            east_west_col_out="latitude",
-            north_south_col_out="longitude",
+            east_west_col_out="longitude",
+            north_south_col_out="latitude",
         )
 
     def _set_up_intenseqc_framework(self) -> tuple[dict, list]:
