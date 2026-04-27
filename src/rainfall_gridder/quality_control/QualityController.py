@@ -1,6 +1,7 @@
 from pathlib import Path
 import polars as pl
 import rainfallqc
+from rainfallqc.qc_frameworks.inbuilt_qc_frameworks import NON_ROWWISE_QC_CHECKS, NON_ROWWISE_QC_CONVERTER
 
 from rainfall_gridder.quality_control.apply_intenseQC_rulebase import apply_intenseQC_rulebase
 from rainfall_gridder.quality_control.nearby_rainfall_data_loader import NearbyRainfallDataLoader
@@ -241,67 +242,14 @@ class QualityController:
                     print(station_id, e, "\n")
                 continue
 
-            # Add flags to lists
-            # join all flags together for the given target rain gauge
-            all_flags = {}
-            all_flags["all_flags_by_row"] = nearby_rainfall_data["time", station_id]
-            for qc in qc_result:
-                if isinstance(qc_result[qc], pl.DataFrame):
-                    try:
-                        all_flags["all_flags_by_row"] = all_flags["all_flags_by_row"].join(qc_result[qc], on="time")
-                    except Exception as e:
-                        print(e, station_id)
-                else:
-                    all_flags[qc] = qc_result[qc]
-
-            # Calculate summary statistics of flags
-            all_flags["all_flags_by_row"] = all_flags["all_flags_by_row"].with_columns(
-                pl.when(
-                    pl.any_horizontal(
-                        pl.all().exclude(["time", station_id]).fill_null(0.0).map_elements(lambda col: col > 0)
-                    )
-                )
-                .then(1)
-                .otherwise(0)
-                .alias("is_flagged")
-            )
-
-            # Count number of flagged rows
-            flagged_rows = (
-                all_flags["all_flags_by_row"]["is_flagged"].value_counts().filter(pl.col("is_flagged") == 1)["count"]
-            )
-            not_flagged_rows = (
-                all_flags["all_flags_by_row"]["is_flagged"].value_counts().filter(pl.col("is_flagged") == 0)["count"]
-            )
-            total_rows = flagged_rows + not_flagged_rows
-            perc_flagged = (flagged_rows / total_rows) * 100
-            perc_flagged = perc_flagged.item() if perc_flagged.len() == 1 else 0
-            print(f"Station ID: {station_id}\t\tFlag rate: {perc_flagged: .2f}%")
-
-            # add to overall QC summary
-            summary_of_qc = {}
-            summary_of_qc["station_id"] = station_id
-            summary_of_qc["num_nearby_gauges"] = len(nearby_metadata) - 1  # do not count the target
-            summary_of_qc["perc_flagged"] = round(perc_flagged, 3)
-            summary_of_qc["total_flagged_rows"] = flagged_rows[0] if flagged_rows.len() > 0 else 0
-            summary_of_qc["total_rows"] = len(all_flags["all_flags_by_row"])
-
-            for qc_key in non_rowwise_checks:
-                if isinstance(all_flags[qc_key], list):
-                    # sum number of years flagged
-                    summary_of_qc[non_rowwise_checks_converter[qc_key]] = sum(item != 0 for item in all_flags[qc_key])
-                else:
-                    summary_of_qc[non_rowwise_checks_converter[qc_key]] = all_flags[qc_key]
-
-            for col in all_flags["all_flags_by_row"].columns[2:]:
-                summary_of_qc[col] = len(all_flags["all_flags_by_row"].filter(pl.col(col) > 0).drop_nans()[col])
-            overall_summary_of_qc[ind] = summary_of_qc
+            # Summarise QC flags into statistics
+            qc_summariser = QCSummariser.run(station_id, nearby_metadata, nearby_rainfall_data, qc_result)
 
             # Apply rulebase
-            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(all_flags, station_id)
+            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id)
             if self.verbose:
                 print(
-                    f"Station ID: {station_id}\tA total of {all_flags['all_flags_by_row'][station_id].count() - rule_removed_rows[station_id].count()} rows were removed"
+                    f"Station ID: {station_id}\tA total of {qc_summariser.all_flags['all_flags_by_row'][station_id].count() - rule_removed_rows[station_id].count()} rows were removed"
                 )  # some rows may have stayed null
             ## get back into parquet format that fits with Oracle
             rule_removed_rows = rule_removed_rows.select(["time", station_id])  # saves memory
@@ -309,9 +257,15 @@ class QualityController:
             rule_removed_rows = rule_removed_rows.rename(
                 {station_id: self.precipitation_col, "time": self.date_time_col}
             )
+
+            # Append summaries to lists
+            overall_summary_of_qc[ind] = qc_summariser.summary_of_qc
             qcd_data_list[ind] = rule_removed_rows
             rulebase_summary[ind] = n_rows_removed
-            print("")
+            if self.verbose:
+                print("")
+
+        # Add summaries and qc data to self
         self.qc_rulebase_summary = pl.DataFrame(rulebase_summary)
         self.summary_of_qc = pl.DataFrame(overall_summary_of_qc)
         self.qcd_data = pl.concat([qcd_data for qcd_data in qcd_data_list if qcd_data is not None])
@@ -391,3 +345,115 @@ class QualityController:
         self.qc_kwargs["shared"]["gauge_lon"] = nearby_gauge_loader.nearby_metadata.filter(
             pl.col(self.station_id_col) == nearby_gauge_loader.station_id
         )["longitude"]
+
+
+class QCSummariser:
+    """
+    Summariser for QC flags.
+    """
+
+    def __init__(
+        self,
+        station_id: str,
+        rainfall_data: pl.DataFrame,
+        nearby_metadata: pl.DataFrame,
+        qc_result: dict,
+        verbose: bool,
+    ):
+        """
+        Summarises QC from a given station.
+
+        Parameters
+        ----------
+        station_id:
+            Target rainfall station ID
+        rainfall_data:
+            Rainfall data from target ID
+        nearby_metadata:
+            Details about rainfall data from target and a given no. of neighbours
+        qc_result:
+            Summary of QC output from rainfallqc.apply_qc_framework.run_qc_framework.
+        verbose:
+            Whether to print progress as algorithm is run (default: False)
+
+        """
+        self.all_flags = {}
+        self.station_id = station_id
+        self.rainfall_data = rainfall_data
+        self.nearby_metadata = nearby_metadata
+        self.qc_result = qc_result
+        self.verbose = verbose
+
+        # Join QC checks into one dict
+        self._join_qc_result_into_all_flags()
+        # Get count of flagged and not-flagged rows
+        flagged_rows, not_flagged_rows = self._count_flagged_and_non_flagged_rows()
+        # Create summary
+        self.all_flags, self.summary_of_qc = self._create_summary_of_qc(flagged_rows, not_flagged_rows=not_flagged_rows)
+
+    def _join_qc_result_into_all_flags(self):
+        self.all_flags["all_flags_by_row"] = self.rainfall_data["time", self.station_id]
+        for qc in self.qc_result:
+            if isinstance(self.qc_result[qc], pl.DataFrame):
+                try:
+                    self.all_flags["all_flags_by_row"] = self.all_flags["all_flags_by_row"].join(
+                        self.qc_result[qc], on="time"
+                    )
+                except Exception as e:
+                    if self.verbose:
+                        print(e, self.station_id)
+            else:
+                self.all_flags[qc] = self.qc_result[qc]
+
+    def _count_flagged_and_non_flagged_rows(self) -> tuple[pl.Series, pl.Series]:
+        """
+        Count number of rows of rainfall data with flags or not.
+        """
+        self.all_flags["all_flags_by_row"] = self.all_flags["all_flags_by_row"].with_columns(
+            pl.when(
+                pl.any_horizontal(
+                    pl.all().exclude(["time", self.station_id]).fill_null(0.0).map_elements(lambda col: col > 0)
+                )
+            )
+            .then(1)
+            .otherwise(0)
+            .alias("is_flagged")
+        )
+
+        # Count number of flagged rows
+        flagged_rows = (
+            self.all_flags["all_flags_by_row"]["is_flagged"].value_counts().filter(pl.col("is_flagged") == 1)["count"]
+        )
+        not_flagged_rows = (
+            self.all_flags["all_flags_by_row"]["is_flagged"].value_counts().filter(pl.col("is_flagged") == 0)["count"]
+        )
+        return flagged_rows, not_flagged_rows
+
+    def _create_summary_of_qc(self, flagged_rows: pl.Series, not_flagged_rows: pl.Series):
+        """
+        Create summary of the rows flagged in rainfall data.
+        """
+        total_rows = flagged_rows + not_flagged_rows
+        perc_flagged = (flagged_rows / total_rows) * 100
+        perc_flagged = perc_flagged.item() if perc_flagged.len() == 1 else 0
+        if self.verbose:
+            print(f"Station ID: {self.station_id}\t\tFlag rate: {perc_flagged: .2f}%")
+
+        # add to overall QC summary
+        summary_of_qc = {}
+        summary_of_qc["station_id"] = self.station_id
+        summary_of_qc["num_nearby_gauges"] = len(self.nearby_metadata) - 1  # do not count the target
+        summary_of_qc["perc_flagged"] = round(perc_flagged, 3)
+        summary_of_qc["total_flagged_rows"] = flagged_rows[0] if flagged_rows.len() > 0 else 0
+        summary_of_qc["total_rows"] = len(self.all_flags["all_flags_by_row"])
+
+        for qc_key in NON_ROWWISE_QC_CHECKS:
+            if isinstance(self.all_flags[qc_key], list):
+                # sum number of years flagged
+                summary_of_qc[NON_ROWWISE_QC_CONVERTER[qc_key]] = sum(item != 0 for item in self.all_flags[qc_key])
+            else:
+                summary_of_qc[NON_ROWWISE_QC_CONVERTER[qc_key]] = self.all_flags[qc_key]
+
+        for col in self.all_flags["all_flags_by_row"].columns[2:]:
+            summary_of_qc[col] = len(self.all_flags["all_flags_by_row"].filter(pl.col(col) > 0).drop_nans()[col])
+        return self.all_flags, summary_of_qc
