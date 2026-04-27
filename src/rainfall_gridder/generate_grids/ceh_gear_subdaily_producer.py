@@ -46,6 +46,7 @@ class CEHGEARSubDailyProducer:
         self.station_id_col = station_id_col
         self.date_time_col = date_time_col
         self.hour_at_start_of_day = hour_at_start_of_day
+        self.verbose = verbose
         self.one_day_rainfall_data = self._get_one_day_rainfall_data(rainfall_data)
         self.one_day_daily_totals = self._get_daily_gauge_totals()
         self.gauge_daily_info = self._get_daily_info()

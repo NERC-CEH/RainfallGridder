@@ -142,7 +142,7 @@ def ceh_gear_subdaily_workflow(
 
     # 4. Generate grids
     print("4. Generate grids and save to Zarr")
-    all_days = batch_saving_utils.get_all_days(
+    all_days = batch_saving_utils.get_all_days_in_input(
         corrd_rainfall_metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
     )
     output_grid = get_ceh_gear_data.get_uk_mask_haduk_coords()
@@ -157,6 +157,8 @@ def ceh_gear_subdaily_workflow(
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         batch_results = []
         for time_step in batch_days:
+            if config.verbose:
+                print(f"starting {time_step}")
             one_day_gridded_daily = gridded_rainfall.sel(
                 time=time_step.replace(minute=0, second=0, microsecond=0)
             ).where(output_grid)  # subset_to_uk_mask to work with map multiplication
