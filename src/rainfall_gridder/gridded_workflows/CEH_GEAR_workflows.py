@@ -189,7 +189,7 @@ def ceh_gear_subdaily_workflow(
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
 
-        combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.datetime_col)
+        combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col)
         combined_batch_ds = combined_batch_ds.chunk("auto")
         del sub_daily_ceh_gear_batch
 
