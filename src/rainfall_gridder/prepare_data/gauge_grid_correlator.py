@@ -4,7 +4,7 @@ import scipy.stats
 import xarray as xr
 
 from rainfall_gridder.prepare_data.data_combiner import GaugeVsGriddedRainfallMatcher
-from rainfall_gridder.utils import spatial_utils
+from rainfall_gridder.utils import spatial_utils, xarray_utils
 
 
 class GaugeVsGriddedCorrelator:
@@ -47,14 +47,11 @@ class GaugeVsGriddedCorrelator:
         self.start_date_col = start_date_col
         self.end_date_col = end_date_col
         self.station_id_col = station_id_col
+        self.easting_col = easting_col
+        self.northing_col = northing_col
         self.rainfall_offset_hours = rainfall_offset_hours
 
-        nearest_gridded_daily = self._subset_gridded_data_to_start_and_end_of_gauge(nearest_gridded_daily)
-        self.nearest_gridded_daily = spatial_utils.get_nearest_grid_cell(
-            nearest_gridded_daily,
-            easting=self.gauge_metadata[easting_col][0],
-            northing=self.gauge_metadata[northing_col][0],
-        )
+        self.nearest_gridded_daily = self._load_daily_nearest_gridded_daily(nearest_gridded_daily)
 
         if aggregate_gauge_to_daily:
             self.gauge_data = self._aggregate_gauge_subdaily_to_daily()
@@ -70,6 +67,24 @@ class GaugeVsGriddedCorrelator:
                 label="left",
             )
             .agg(pl.col(self.precipitation_col).sum())
+        )
+    
+    def _load_daily_nearest_gridded_daily(self, nearest_gridded_daily: xr.Dataset) -> xr.Dataset:
+        """
+        Load daily gridded data.
+
+        TODO: This method need some work, because what if the day doesn't start at 00:00.
+        TODO: also need to assert the data is actually daily
+        """
+        nearest_gridded_daily = xarray_utils.replace_daily_time_step_hour_with_zero(
+            nearest_gridded_daily, time_col="time"
+        )
+
+        nearest_gridded_daily = self._subset_gridded_data_to_start_and_end_of_gauge(nearest_gridded_daily)
+        return spatial_utils.get_nearest_grid_cell(
+            nearest_gridded_daily,
+            easting=self.gauge_metadata[self.easting_col][0],
+            northing=self.gauge_metadata[self.northing_col][0],
         )
 
     def _join_gauge_to_grid(self):

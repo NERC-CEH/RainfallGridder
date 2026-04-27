@@ -114,7 +114,7 @@ def ceh_gear_subdaily_workflow(
         return_data=True,
     )
     # 3. Correlate gauge and gridded data (agg. to daily)
-    print("3. Correlated Qc'd data to gridded data")
+    print("3. Correlate gauge data to gridded data")
     station_ids_to_correlate = qcd_rainfall_metadata[config.data_columns.station_id_col].unique()
     qcd_rainfall_metadata = BatchGaugeVsGriddedCorrelator.run(
         gauge_data=qcd_rainfall_data,
