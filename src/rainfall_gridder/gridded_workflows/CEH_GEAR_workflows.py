@@ -6,7 +6,7 @@ from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control.QualityController import QualityController
 from rainfall_gridder.prepare_data.gauge_grid_correlator import BatchGaugeVsGriddedCorrelator
 from rainfall_gridder.generate_grids.ceh_gear_subdaily_producer import CEHGEARSubDailyProducer
-from rainfall_gridder.utils import batch_saving_utils, get_ceh_gear_data, spatial_utils
+from rainfall_gridder.utils import batch_saving_utils, get_ceh_gear_data, spatial_utils, xarray_utils
 
 
 def ceh_gear_subdaily_workflow(
@@ -150,6 +150,11 @@ def ceh_gear_subdaily_workflow(
     # Subset/clip output grid and gridded daily to metadata bounds
     gridded_rainfall, output_grid = clip_rainfall_grids_to_metadata_bounds(
         gridded_rainfall=gridded_rainfall, output_grid=output_grid, config=config, metadata=corrd_rainfall_metadata
+    )
+
+    # TODO: move higher up as I think all parts will use this
+    gridded_rainfall = xarray_utils.replace_daily_time_step_hour_with_zero(
+        gridded_rainfall, time_col="time"
     )
 
     first_write = True
