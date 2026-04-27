@@ -3,7 +3,8 @@
 ## [0.0.4] - 2026-04-27
 
 ### Added
-* edit nearby data loader to work with in memory df or file paths
+* Edit nearby data loader to work with in memory df or file paths
+* Add QCSummariser class for the QualityController algorithm 
 
 ## [0.0.3] - 2026-04-26
 
