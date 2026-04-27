@@ -90,8 +90,8 @@ def ceh_gear_subdaily_workflow(
     # 2. Quality Control
     print("2. Quality control")
     qcd_rainfall_data, qcd_rainfall_metadata, summary_of_qc, qc_rulebase_summary = QualityController.run(
-        rainfall_data,
-        rainfall_metadata,
+        rainfall_data=rainfall_data,
+        rainfall_metadata=rainfall_metadata,
         station_id_col=config.data_columns.station_id_col,
         station_name_col=config.data_columns.station_name_col,
         date_time_col=config.data_columns.date_time_col,

@@ -140,7 +140,7 @@ class QualityController:
 
     @classmethod
     def run(
-        cls, save_data: bool = True, return_data: bool = False, partition_by_columns: list = None, **kwargs
+        cls, save_data: bool, return_data: bool, partition_by_columns: list = None, **kwargs
     ) -> None | tuple[pl.DataFrame, pl.DataFrame]:
         """
         Run the quality controller and return and/or save the prepared data.
@@ -148,9 +148,9 @@ class QualityController:
         Parameters
         ----------
         save_data:
-            Whether to save data to output directory (default True)
+            Whether to save data to output directory
         return_data:
-            Whether to return dataframes (default False)
+            Whether to return dataframes
         partition_by_columns:
             List of columns to partition the parquet files by if saving outputs
 
