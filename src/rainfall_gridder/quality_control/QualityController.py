@@ -225,22 +225,21 @@ class QualityController:
 
             # Update shared QC kwargs with latest values from nearby gauge loader
             self.update_shared_qc_kwargs(nearby_rainfall_data_loader)
-            print(nearby_rainfall_data)
             # Run QC framework
-            # try:
-            assert len(nearby_rainfall_data) > self.min_n_timesteps, (
-                f"Data needs at least {self.min_n_timesteps} timesteps"
-            )
-            qc_result = rainfallqc.apply_qc_framework.run_qc_framework(
-                data=nearby_rainfall_data,
-                qc_framework=self.qc_framework,
-                qc_methods_to_run=self.qc_methods_to_run,
-                qc_kwargs=self.qc_kwargs,
+            try:
+                assert len(nearby_rainfall_data) > self.min_n_timesteps, (
+                    f"Data needs at least {self.min_n_timesteps} timesteps"
                 )
-            # except Exception as e:
-            #     if self.verbose:
-            #         print(station_id, e, "\n")
-            #     continue
+                qc_result = rainfallqc.apply_qc_framework.run_qc_framework(
+                    data=nearby_rainfall_data,
+                    qc_framework=self.qc_framework,
+                    qc_methods_to_run=self.qc_methods_to_run,
+                    qc_kwargs=self.qc_kwargs,
+                    )
+            except Exception as e:
+                if self.verbose:
+                    print(station_id, e, "\n")
+                continue
 
             # Summarise QC flags into statistics
             qc_summariser = QCSummariser.run(station_id, nearby_metadata, nearby_rainfall_data, qc_result)
