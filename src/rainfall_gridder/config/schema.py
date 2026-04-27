@@ -45,6 +45,7 @@ class WorkflowConfig(BaseModel):
     min_n_neighbours: int
     qc_framework: str
     nearby_rainfall_data_loader_kwargs: dict
+    correlation_threshold: float
     min_n_timesteps: int = 100
     batch_size: int = 5
 

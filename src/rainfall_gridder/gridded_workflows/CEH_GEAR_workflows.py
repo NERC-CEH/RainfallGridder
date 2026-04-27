@@ -3,6 +3,7 @@ import xarray as xr
 from rainfall_gridder.config.schema import ColumnConfig, WorkflowConfig
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control.QualityController import QualityController
+from rainfall_gridder.prepare_data.gauge_grid_correlator import BatchGaugeVsGriddedCorrelator
 
 
 def ceh_gear_subdaily_workflow(
@@ -112,9 +113,32 @@ def ceh_gear_subdaily_workflow(
         save_data=True,
         return_data=True,
     )
+    # 3. Correlate gauge and gridded data (agg. to daily)
+    print("3. Correlated Qc'd data to gridded data")
+    station_ids_to_correlate = qcd_rainfall_metadata[config.data_columns.station_id_col].unique()
+    qcd_rainfall_metadata = BatchGaugeVsGriddedCorrelator.run(
+        gauge_data=qcd_rainfall_data,
+        gauge_metadata=qcd_rainfall_metadata,
+        gridded_rainfall_data=gridded_rainfall,
+        gridded_rainfall_col=config.gridded_rainfall_col,
+        station_ids_to_correlate=station_ids_to_correlate,
+        station_id_col=config.data_columns.station_id_col,
+        precipitation_col=config.data_columns.precipitation_col,
+        date_time_col=config.data_columns.date_time_col,
+        start_date_col=config.data_columns.start_date_col,
+        end_date_col=config.data_columns.end_date_col,
+        easting_col=config.data_columns.easting_col,
+        northing_col=config.data_columns.northing_col,
+        rainfall_offset_hours=config.rainfall_offset_hours,
+        verbose=config.verbose,
+        correlation_threshold=config.correlation_threshold,
+        output_dir=config.output_dir,
+        save_data=True,
+        return_data=True,
+    )
 
-    # 3. Generate grids
-    print("3. Generate grids")
+    # 4. Generate grids
+    print("4. Generate grids")
     # all_days = batch_saving_utils.get_all_days(
     #     metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
     # )

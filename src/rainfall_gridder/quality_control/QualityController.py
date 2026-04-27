@@ -253,7 +253,9 @@ class QualityController:
             )
 
             # Apply rulebase
-            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id, time_step=self.time_res)
+            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(
+                qc_summariser.all_flags, station_id, time_step=self.time_res
+            )
             if self.verbose:
                 print(
                     f"Station ID: {station_id}\tA total of {qc_summariser.all_flags['all_flags_by_row'][station_id].count() - rule_removed_rows[station_id].count()} rows were removed"
