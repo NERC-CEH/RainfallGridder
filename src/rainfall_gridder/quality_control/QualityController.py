@@ -320,7 +320,7 @@ class QualityController:
             raise RuntimeError("You must call quality_control_data() before save_final_metadata()")
         self.qcd_metadata.write_parquet(self.output_dir / "qcd_metadata.parquet")
         if self.verbose:
-            print(f"QC'd rainfall metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
+            print(f"QC'd rainfall metadata available at: {self.output_dir / 'qcd_metadata.parquet'}")
 
     def save_summary_of_qc(self) -> None:
         if self.summary_of_qc is None:
