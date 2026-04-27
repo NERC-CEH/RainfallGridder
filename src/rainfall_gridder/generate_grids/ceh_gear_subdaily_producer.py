@@ -259,7 +259,7 @@ class CEHGEARSubDailyProducer:
         one_day_gridded_daily: xr.Dataset,
         gridded_rainfall_col: str,
         output_rainfall_name: str = "rainfall",
-    ):
+    ) -> xr.Dataset:
         # 1. Get coord grids
         x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(land_mask, return_coords=True)
         # 2. Run interpolation for distance grid and daily totals

@@ -160,7 +160,7 @@ def ceh_gear_subdaily_workflow(
     first_write = True
 
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
-        batch_results = []
+        sub_daily_ceh_gear_batch = []
         for time_step in batch_days:
             if config.verbose:
                 print(f"starting {time_step}")
@@ -181,10 +181,17 @@ def ceh_gear_subdaily_workflow(
                 hour_at_start_of_day=config.rainfall_offset_hours,
                 verbose=config.verbose,
             )
-            data, metadata = ceh_gear_sub_daily_producer(data, metadata, config.output_dir, one_day_gridded_daily)
-        combined_batch_ds = xr.concat(batch_results, dim=config.datetime_col)
+            ceh_gear_sub_daily_one_day = ceh_gear_sub_daily_producer.produce_ceh_gear(
+                land_mask=output_grid,
+                one_day_gridded_daily=one_day_gridded_daily,
+                gridded_rainfall_col=config.gridded_rainfall_col,
+                output_rainfall_name="rainfall"
+            )
+            sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
+
+        combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.datetime_col)
         combined_batch_ds = combined_batch_ds.chunk("auto")
-        del batch_results
+        del sub_daily_ceh_gear_batch
 
         if first_write:
             batch_ds.to_zarr(config.output_dir / config.output_zarr_name, mode="w", zarr_format=2)
