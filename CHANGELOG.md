@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.0.5] - 2026-04-??
+## [0.1.0] - 2026-04-27
+
+### Added
+* Add CEHGEARSubDailyProducer (part 4 of 4)
+* Fix bugs with CEH_GEAR_workflows
+
+## [0.0.5] - 2026-04-27
 
 ### Added
 * Add GaugeVsGridCorrelator (part 3 of 4)
