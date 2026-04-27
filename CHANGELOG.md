@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.5] - 2026-04-??
+
+### Added
+* Fix bugs with QualityController
+
+
 ## [0.0.4] - 2026-04-27
 
 ### Added
