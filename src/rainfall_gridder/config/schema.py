@@ -46,6 +46,7 @@ class WorkflowConfig(BaseModel):
     qc_framework: str
     nearby_rainfall_data_loader_kwargs: dict
     correlation_threshold: float
+    output_rainfall_name: str
     min_n_timesteps: int = 100
     batch_size: int = 5
     output_zarr_name: str = "final_gridded_data"
