@@ -221,7 +221,7 @@ class QualityController:
                 continue
 
             nearby_metadata = nearby_gauge_loader.nearby_metadata
-            nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
+            nearby_rainfall_data = nearby_gauge_loader.load_nearby_rainfall_data(rainfall_data=self.rainfall_data)
 
             # Update shared QC kwargs with latest values from nearby gauge loader
             self.update_shared_qc_kwargs()
