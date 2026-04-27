@@ -12,7 +12,7 @@ def get_all_days_in_input(
     all_days = []
     while current < end_date:
         all_days.append(current)
-        current = datetime.timedelta(days=every_n_days)
+        current += datetime.timedelta(days=every_n_days)
     return all_days
 
 
