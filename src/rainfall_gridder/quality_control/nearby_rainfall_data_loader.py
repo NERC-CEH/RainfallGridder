@@ -54,7 +54,7 @@ class NearbyRainfallDataLoader:
         self.nearby_rain_gauge_distances = self._get_nearby_rain_gauge_distances()
         self.nearest_station_id = self._get_nearest_neighbour()
         self.stations_to_load = self.nearby_metadata[self.station_id_col].unique().to_list()
-        self.nearby_rainfall_data = self.load_nearby_rainfall_data()
+        self.nearby_rainfall_data = self._load_nearby_rainfall_data()
         self.nearby_rainfall_for_rainfallqc = self.prepare_nearby_rainfall_data_for_rainfallqc()
 
     def _get_nearby_metadata(self, metadata):
@@ -86,7 +86,7 @@ class NearbyRainfallDataLoader:
             return None
         return self.nearby_rain_gauge_distances.sort("distance")[0][self.station_id_col].item()
 
-    def load_nearby_rainfall_data(self) -> pl.DataFrame:
+    def _load_nearby_rainfall_data(self) -> pl.DataFrame:
         if self.rainfall_data_source == "parquet":
             if self.path_to_rainfall_files is None:
                 raise ValueError("path_to_files must be provided for parquet data source")
