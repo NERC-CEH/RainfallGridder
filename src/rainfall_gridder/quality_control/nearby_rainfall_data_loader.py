@@ -82,7 +82,7 @@ class NearbyRainfallDataLoader:
         )
 
     def _get_nearest_neighbour(self) -> str | None:
-        if not self.nearby_rain_gauge_distances:
+        if self.nearby_rain_gauge_distances.is_empty():
             return None
         return self.nearby_rain_gauge_distances.sort("distance")[0][self.station_id_col].item()
 
