@@ -203,7 +203,7 @@ class BatchGaugeVsGriddedCorrelator(GaugeVsGriddedCorrelator):
     def run_correlator(self):
         station_ids_to_remove = []
         for station_id in self.station_ids_to_correlate:
-            # Subset the metadata, data and nearest gridded data
+            # Subset the metadata, data
             metadata_one_station = self.gauge_metadata.filter(pl.col(self.station_id_col) == station_id)
             if metadata_one_station.is_empty():
                 if self.verbose:
@@ -217,16 +217,10 @@ class BatchGaugeVsGriddedCorrelator(GaugeVsGriddedCorrelator):
                     print(f"Station ID: {station_id} is not included in the data")
                     continue
 
-            nearest_gridded_daily = spatial_utils.get_nearest_grid_cell(
-                self.gridded_rainfall_data,
-                easting=metadata_one_station[self.easting_col][0],
-                northing=metadata_one_station[self.northing_col][0],
-            )
-
             gauge_grid_correlator = GaugeVsGriddedCorrelator(
                 gauge_data=data_one_station,
                 gauge_metadata=metadata_one_station,
-                nearest_gridded_daily=nearest_gridded_daily,
+                nearest_gridded_daily=self.gridded_rainfall_data,
                 station_id=station_id,
                 precipitation_col=self.precipitation_col,
                 gridded_rainfall_col=self.gridded_rainfall_col,
@@ -300,6 +294,6 @@ class BatchGaugeVsGriddedCorrelator(GaugeVsGriddedCorrelator):
         self.corrd_metadata.write_parquet(self.output_dir / "corrd_metadata.parquet")
         if self.verbose:
             print(
-                "Gauge metadata filtered by correlation to nearest grid cell available"
-                f"at: {self.output_dir / 'prepared_metadata.parquet'}"
+                "Gauge metadata filtered by correlation to nearest grid cell available "
+                f"at: {self.output_dir / 'corrd_metadata.parquet'}"
             )
