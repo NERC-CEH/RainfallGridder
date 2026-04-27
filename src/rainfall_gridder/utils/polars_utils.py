@@ -1,7 +1,6 @@
 import polars as pl
 
-from rainfallqc.utils.data_utils import check_data_has_consistent_time_step
-
+import rainfallqc.utils.data_utils
 
 def check_data_is_specific_time_res(data: pl.DataFrame, time_res: str | list) -> None:
     """
@@ -24,4 +23,4 @@ def check_data_is_specific_time_res(data: pl.DataFrame, time_res: str | list) ->
         If data is not hourly or daily.
 
     """
-    return check_data_has_consistent_time_step(data, time_res)
+    return rainfallqc.utils.data_utils.check_data_is_specific_time_res(data, time_res)
