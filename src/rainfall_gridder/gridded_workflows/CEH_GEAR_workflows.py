@@ -194,12 +194,12 @@ def ceh_gear_subdaily_workflow(
         del sub_daily_ceh_gear_batch
 
         if first_write:
-            batch_ds.to_zarr(config.output_dir / config.output_zarr_name, mode="w", zarr_format=2)
+            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, mode="w", zarr_format=2)
             first_write = False
         else:
-            batch_ds.to_zarr(config.output_dir / config.output_zarr_name, append_dim="time", zarr_format=2)
+            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, append_dim="time", zarr_format=2)
 
-        del batch_ds
+        del combined_batch_ds
         # batch_saving_utils.write_to_zarr(
         #     config.output_dir / config.output_zarr_name, zarr_format=2
         # )  # Check if Zarr 3 can be used
