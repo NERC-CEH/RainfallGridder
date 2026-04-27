@@ -8,10 +8,14 @@ from rainfall_gridder.utils import spatial_utils, xarray_utils
 
 
 class DataPreparer:
+    """
+    Main data preparing algorithm.
+    """
+
     def __init__(
         self,
-        data: pl.DataFrame,
-        metadata: pl.DataFrame,
+        rainfall_data: pl.DataFrame,
+        rainfall_metadata: pl.DataFrame,
         station_id_col: str,
         station_name_col: str,
         precipitation_col: str,
@@ -24,20 +28,28 @@ class DataPreparer:
         gridded_rainfall_col: str,
         rainfall_offset_hours: int,
         output_dir: str | Path,
+        min_n_timesteps: int,
         verbose: bool = False,
-        min_n_timesteps: int = 100,
     ):
         """
         Main data preparer for gridded workflow.
 
         Parameters
         ----------
+        rainfall_data:
+            Rainfall gauge data
+        rainfall_metadata:
+            Details of rain gauge data
         gridded_rainfall_col:
             Name of rainfall variable in the gridded_rainfall_data
         rainfall_offset_hours:
             First hour of the rainfall day (e.g. 9 if running from 9am to 8.59am)
         output_dir:
             Output directory for data files
+        min_n_timesteps:
+            Minimum number of timesteps needed in rainfall_data to be considered valid
+        verbose:
+            Whether to print progress as algorithm is run (default: False)
 
         """
         self.station_id_col = station_id_col
@@ -50,42 +62,45 @@ class DataPreparer:
         self.northing_col = northing_col
         self.rainfall_offset_hours = rainfall_offset_hours
         self.output_dir = output_dir
-        self.verbose = verbose
         self.min_n_timesteps = min_n_timesteps
         self.gridded_rainfall_col = gridded_rainfall_col
+        self.verbose = verbose
 
         # Prepare data inputs
-        self.data = self._prepare_data(data)
-        self.metadata = self._prepare_metadata(metadata)
+        self.rainfall_data = self._prepare_data(rainfall_data)
+        self.rainfall_metadata = self._prepare_metadata(rainfall_metadata)
         self.gridded_rainfall_data = self._prepare_gridded_rainfall_data(gridded_rainfall_data)
 
         # empty final outputs
         self.prepared_data = None
         self.prepared_metadata = None
 
-    def _remove_duplicates_in_metadata(self, metadata):
+    def _remove_duplicates_in_metadata(self, metadata: pl.DataFrame) -> pl.DataFrame:
         return metadata.unique(
             subset=[self.station_id_col]
         )  # TODO: this would leave wrong coords if it returns first unique
 
-    def _prepare_metadata(self, metadata):
-        metadata = self._remove_duplicates_in_metadata(metadata)
+    def _prepare_metadata(self, rainfall_metadata: pl.DataFrame) -> pl.DataFrame:
+        rainfall_metadata = self._remove_duplicates_in_metadata(rainfall_metadata)
         try:
             metadata_preparer.add_completeness_to_metadata(
-                self.data, metadata, station_id_col=self.station_id_col, date_time_col=self.date_time_col
+                self.rainfall_data,
+                rainfall_metadata,
+                station_id_col=self.station_id_col,
+                date_time_col=self.date_time_col,
             )
         except ValueError as ve:
             print(ve)
 
-        metadata = metadata_preparer.add_completeness_to_metadata(
-            self.data, metadata, station_id_col=self.station_id_col, date_time_col=self.date_time_col
+        rainfall_metadata = metadata_preparer.add_completeness_to_metadata(
+            self.rainfall_data, rainfall_metadata, station_id_col=self.station_id_col, date_time_col=self.date_time_col
         )
-        metadata = data_formatting.group_metadata_by_station_locations(
-            metadata, easting_col=self.easting_col, northing_col=self.northing_col
+        rainfall_metadata = data_formatting.group_metadata_by_station_locations(
+            rainfall_metadata, easting_col=self.easting_col, northing_col=self.northing_col
         )
-        return data_formatting.add_blank_file_path_to_metadata(metadata)
+        return data_formatting.add_blank_file_path_to_metadata(rainfall_metadata)
 
-    def _prepare_gridded_rainfall_data(self, gridded_rainfall_data):
+    def _prepare_gridded_rainfall_data(self, gridded_rainfall_data: xr.Dataset) -> xr.Dataset:
         for data_var in ["x", "y", "time", self.gridded_rainfall_col]:
             assert data_var in gridded_rainfall_data, (
                 f"Expecting data variable: '{data_var}' in gridded rainfall data. "
@@ -95,7 +110,7 @@ class DataPreparer:
             gridded_rainfall_data, time_col="time"
         )
         gridded_rainfall_data = xarray_utils.subset_gridded_data_to_metadata_bounds(
-            gridded_rainfall_data, self.metadata, self.easting_col, self.northing_col
+            gridded_rainfall_data, self.rainfall_metadata, self.easting_col, self.northing_col
         )
         return gridded_rainfall_data
 
@@ -141,14 +156,14 @@ class DataPreparer:
         if return_data:
             return data_preparer.prepared_data, data_preparer.prepared_metadata
 
-    def prepare_data_and_metadata_for_gridding(self):
+    def prepare_data_and_metadata_for_gridding(self) -> None:
         prepared_data_list = []
         prepared_metadata_list = []
 
         # Loop through each station id group (group may be multiple gauges if a site has a backup)
-        for station_group_id in self.metadata["station_group_id"].unique():
-            metadata_one_group = self.metadata.filter(pl.col("station_group_id") == station_group_id)
-            data_one_group = self.data.filter(
+        for station_group_id in self.rainfall_metadata["station_group_id"].unique():
+            metadata_one_group = self.rainfall_metadata.filter(pl.col("station_group_id") == station_group_id)
+            data_one_group = self.rainfall_data.filter(
                 pl.col(self.station_id_col).is_in(metadata_one_group[self.station_id_col].unique().to_list())
             )
 
@@ -225,9 +240,9 @@ class DataPreparer:
                     min_datetime=data_one_group[self.date_time_col].min(),
                     max_datetime=data_one_group[self.date_time_col].max(),
                 )
-                prepared_metadata_list.append(merged_metadata.select(self.metadata.columns))
+                prepared_metadata_list.append(merged_metadata.select(self.rainfall_metadata.columns))
             else:
-                prepared_metadata_list.append(metadata_one_group.select(self.metadata.columns))
+                prepared_metadata_list.append(metadata_one_group.select(self.rainfall_metadata.columns))
         self.prepared_data = pl.concat(prepared_data_list)
         self.prepared_metadata = pl.concat(prepared_metadata_list, how="diagonal_relaxed")
 
@@ -244,12 +259,11 @@ class DataPreparer:
             partition_by_columns = [self.station_id_col]
 
         if self.prepared_data is None:
-            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_output()")
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_prepared_data()")
 
         assert len(self.prepared_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
             "Problem with metadata as duplicate filepaths"
         )
-
         # Save partitioned parquet file
         (
             self.prepared_data.sort(self.date_time_col).write_parquet(
@@ -262,7 +276,10 @@ class DataPreparer:
 
     def save_prepared_metadata(self) -> None:
         if self.prepared_metadata is None:
-            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_final_metadata()")
+            raise RuntimeError("You must call prepare_data_and_metadata_for_gridding() before save_prepared_metadata()")
+        assert len(self.prepared_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
+            "Problem with metadata as duplicate filepaths"
+        )
         self.prepared_metadata.write_parquet(self.output_dir / "prepared_metadata.parquet")
         if self.verbose:
             print(f"prepared gauge metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")

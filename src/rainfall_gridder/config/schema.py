@@ -39,6 +39,12 @@ class WorkflowConfig(BaseModel):
     rainfall_offset_hours: int
     n_hours: int
     verbose: bool = False
+    input_crs: str
+    time_res: str
+    smallest_rainfall_amount: float
+    min_n_neighbours: int
+    qc_framework: str
+    nearby_rainfall_data_loader_kwargs: dict
     min_n_timesteps: int = 100
     batch_size: int = 5
 
@@ -52,7 +58,5 @@ class WorkflowConfig(BaseModel):
         ds = xr.open_dataset(self.gridded_rainfall_data.path)
         if self.gridded_rainfall_data.rename:
             ds = ds.rename(self.gridded_rainfall_data.rename)
-        assert self.gridded_rainfall_col in ds.data_vars, (
-            f"{self.gridded_rainfall_col} not in gridded_rainfall_data"
-        )
+        assert self.gridded_rainfall_col in ds.data_vars, f"{self.gridded_rainfall_col} not in gridded_rainfall_data"
         return ds

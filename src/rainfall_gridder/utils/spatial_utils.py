@@ -47,12 +47,17 @@ def crs_to_crs(
     df: dataframe
         Data with new crs
     """
-    transformer = Transformer.from_crs(f"EPSG:{crs_in}", f"EPSG:{crs_out}", always_xy=True)
-    df[east_west_col_out], df[north_south_col_out] = transformer.transform(
-        df[east_west_col_in].values, df[north_south_col_in].values
+    if not crs_in.startswith("EPSG"):
+        crs_in = "EPSG:" + str(crs_in)
+    if not crs_out.startswith("EPSG"):
+        crs_out = "EPSG:" + str(crs_out)
+    transformer = Transformer.from_crs(crs_in, crs_out, always_xy=True)
+    transformed_eastings, transformed_northings = transformer.transform(
+        df[east_west_col_in].to_numpy(), df[north_south_col_in].to_numpy()
     )
-
-    return df
+    return df.with_columns(
+        pl.lit(transformed_eastings).alias(east_west_col_out), pl.lit(transformed_northings).alias(north_south_col_out)
+    )
 
 
 def get_nearest_grid_cell(
