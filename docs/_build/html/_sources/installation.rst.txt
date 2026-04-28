@@ -21,13 +21,13 @@ Install options
 
         .. code-block:: bash
 
-            uv add rainfall_gridder
+            uv add RainfallGridder
 
     .. tab-item:: :iconify:`devicon:pypi` pip
 
         .. code-block:: bash
 
-            pip install rainfall_gridder
+            pip install RainfallGridder
 
 Importing
 =========
