@@ -1,6 +1,6 @@
 .. image:: /_static/rainfall_gridder_logo_circle.png
-:alt: RainfallGridder
-:width: 350
+        :alt: RainfallGridder
+        :width: 350
 
 
 ===============
