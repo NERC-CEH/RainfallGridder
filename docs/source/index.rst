@@ -47,7 +47,6 @@
     Python package for interpolating rainfall data from rain gauges onto a regular grid
 
 
-.. Falco is your Django toolkit for faster prototyping and deployment of your Django projects. It offers commands for project generation, CRUD view generation, guides that address common web development challenges tailored to Django and much more.
 Current version: |release|
 
 .. container:: buttons
@@ -55,6 +54,26 @@ Current version: |release|
     `Docs <installation.html>`_
     `Usage <usage.html>`_
     `Codeberg <https://codeberg.org/CEH-HOTDOG/RainfallGridder>`_
+
+.. grid:: 1 1 2 3
+    :class-row: surface
+    :padding: 0
+    :gutter: 2
+
+    .. grid-item-card:: :octicon:`repo-template` Getting Started
+      :link: getting_started
+
+      A collection of tutorials for setting up and using RainfallGridder. 
+
+    .. grid-item-card:: :octicon:`alert` Issues
+      :link: https://codeberg.org/CEH-HOTDOG/RainfallGridder/issues
+
+      Use this link you need to report any bugs or request new features.
+
+    .. grid-item-card:: :octicon:`people` More FDRI projects
+      :link: https://codeberg.org/CEH-HOTDOG
+
+      Learn more about the UK's Floods & Droughts Research Infrastructure Project.
 
 
 Why RainfallGridder?
@@ -85,6 +104,7 @@ resolution, periodicity, and anchor points.
          :alt: FDRI
          :height: 100px
          :target: https://fdri.org.uk
+
 
 
 Community

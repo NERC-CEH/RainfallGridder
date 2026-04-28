@@ -49,8 +49,33 @@ html_context = {
 html_theme_options = {
     "accent_color": "blue",
     "nav_links": [
+        {"title": "Home", "url": "index"},
         {"title": "Installation", "url": "installation"},
+        {
+            "title": "Community",
+            "children": [
+                {
+                    "title": "FDRI Discussions",
+                    "summary": "FDRI Discussions",
+                    "url": "https://github.com/NERC-CEH/fdri_discussions",
+                    "icon": "coc",
+                },
+                {
+                    "title": "Contributing",
+                    "summary": "Learn how to contribute to the RainfallGridder project",
+                    "url": "contributing",
+                    "icon": "contributing",
+                },
+                {
+                    "title": "Code of Conduct",
+                    "summary": "Review the etiquette for interacting with the RainfallGridder community",
+                    "url": "codeofconduct",
+                    "icon": "coc",
+                },
+            ],
+        },
         {"title": "API reference", "url": "api"},
+
     ],
 }
 
