@@ -54,8 +54,12 @@ html_theme_options = {
     ],
 }
 
+html_logo = "_static/rainfall_gridder_logo_circle.png"
+html_favicon = "_static/rainfall_gridder_logo_circle.png"
+
+
 # -- Napoleon settings -------------------------------------------------------
-napoleon_google_docstring = True
-napoleon_numpy_docstring = False
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
 napoleon_use_param = True
 napoleon_use_rtype = False
