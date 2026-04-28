@@ -15,7 +15,8 @@ maintainers = [
 ]
 classifiers = [
     "Typing :: Typed",
-    # TODO: Add additional classifiers as needed
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
 ]
 license = { file = "LICENSE" }
 dependencies = [

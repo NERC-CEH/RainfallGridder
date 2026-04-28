@@ -57,12 +57,11 @@ coverage:
 
 # Serve docs locally with live reload
 docs-serve:
-    -lsof -ti :8000 | xargs kill
-    uv run --group docs zensical serve
+    uv run sphinx-autobuild docs/source/ docs/_build/html
 
 # Build docs (strict mode, fails on warnings)
 docs-build:
-    uv run --group docs zensical build --clean
+	$(MAKE) -C docs html
 
 # Build the project, useful for checking that packaging is correct
 build:
