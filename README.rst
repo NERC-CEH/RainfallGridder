@@ -13,7 +13,13 @@ Python package for interpolating rainfall data onto a regular grid.
 Features
 --------
 
-* TODO
+* Will help you quality control and grid your rain gauge data
+* Provides a 4-step procedure for:
+        1. Preparing your rain gauge data for gridding
+        2. Quality control of rain gauge data with `RainfallQC <https://codeberg.org/CEH-HOTDOG/RainfallQC>`_ and the `IntenseQC rulebase <https://www.sciencedirect.com/science/article/pii/S1364815221002127#tbl2>`_
+        3. Correlating rain gauges to nearest daily gridded rainfall
+        4. Generating grids
+* Built for the CEH-GEAR 15 min rainfall product
 * Free software: GPL v3 License
 
 Documentation
