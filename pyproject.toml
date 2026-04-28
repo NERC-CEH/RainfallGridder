@@ -17,7 +17,7 @@ classifiers = [
     "Typing :: Typed",
     # TODO: Add additional classifiers as needed
 ]
-license = {text = "MIT"}
+license = { file = "LICENSE" }
 dependencies = [
     "typer",
     "rich",
@@ -45,6 +45,7 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typecheck" },
+    { include-group = "docs" },
 ]
 lint = [
     "ruff",
@@ -57,8 +58,15 @@ typecheck = [
     "ty",
 ]
 docs = [
-    "zensical",
-    "mkdocstrings-python",
+    "sphinx",
+    "shibuya>=2025.9.25",
+    "sphinx-copybutton",
+    "sphinx-design>=0.6.1",
+    "sphinx-iconify>=0.2.1",
+    "sphinx-autodoc-typehints",
+    "sphinx-autobuild",
+    "sphinx-contributors>=0.2.7",
+    "myst-parser",
 ]
 
 [project.urls]
