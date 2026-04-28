@@ -20,12 +20,12 @@
         .. container:: badges
            :name: badges
 
+           .. image:: https://img.shields.io/badge/Humans-999999?style=flat&logo=Made by&label=Made By&labelColor=2BD962
+              :alt: Made by humans
+
            .. image:: https://badges.frapsoft.com/os/v1/open-source.svg?v=103
               :alt: Open Source
-
-           .. image:: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
-              :alt: Made with Python
-
+              
            .. image:: https://img.shields.io/badge/License-GPLv3-blue.svg
               :alt: GPL v3 License
 
