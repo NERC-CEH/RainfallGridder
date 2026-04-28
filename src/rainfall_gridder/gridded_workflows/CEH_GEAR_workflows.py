@@ -142,11 +142,8 @@ def ceh_gear_subdaily_workflow(
 
     # 4. Generate grids
     print("4. Generate grids and save to Zarr")
-    all_days = batch_saving_utils.get_all_days_in_input(
-        corrd_rainfall_metadata, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
-    )
+    # Get output grid dims (1 km by 1 km and same as HadUK-Grid)
     output_grid = get_ceh_gear_data.get_uk_mask_haduk_coords()
-
     # Subset/clip output grid and gridded daily to metadata bounds
     gridded_rainfall, output_grid = clip_rainfall_grids_to_metadata_bounds(
         gridded_rainfall=gridded_rainfall, output_grid=output_grid, config=config, metadata=corrd_rainfall_metadata
@@ -157,8 +154,17 @@ def ceh_gear_subdaily_workflow(
         gridded_rainfall, time_col="time"
     )
 
-    first_write = True
+    produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid)
 
+    print(f"Output saved to: {config.output_dir / config.output_zarr_name}")
+    print("done!")
+
+
+def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
+    first_write = True
+    all_days = batch_saving_utils.get_all_days_in_input(
+        corrd_rainfall_metadata, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
+    )
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         sub_daily_ceh_gear_batch = []
         for time_step in batch_days:
@@ -189,23 +195,24 @@ def ceh_gear_subdaily_workflow(
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
 
-        combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
-        combined_batch_ds = combined_batch_ds.chunk("auto")
-        del sub_daily_ceh_gear_batch
+        write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
 
-        if first_write:
-            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
-            first_write = False
-            if config.verbose:
-                print("First batch written.")
-        else:
-            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2)
-            if config.verbose:
-                print("Next batch written.")
+def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
+    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
+    combined_batch_ds = combined_batch_ds.chunk("auto")
+    del sub_daily_ceh_gear_batch
 
-        del combined_batch_ds
-        # batch_saving_utils.write_to_zarr(
-        # )  # Check if Zarr 3 can be used
+    if first_write:
+        combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
+        first_write = False
+        if config.verbose:
+            print("First batch written.")
+    else:
+        combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2)
+        if config.verbose:
+            print("Next batch written.")
+
+    del combined_batch_ds
 
 
 def clip_rainfall_grids_to_metadata_bounds(
