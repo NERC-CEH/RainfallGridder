@@ -1,3 +1,8 @@
+.. image:: /_static/rainfall_gridder_logo_circle.png
+:alt: RainfallGridder
+:width: 350
+
+
 ===============
 RainfallGridder
 ===============
@@ -6,13 +11,11 @@ RainfallGridder
 
 Python package for interpolating rainfall data onto a regular grid.
 
-* Codeberg: https://codeberg.org/thomasjkeel/RainfallGridder/
-* Free software: GPL v3 License
-
 Features
 --------
 
 * TODO
+* Free software: GPL v3 License
 
 Documentation
 -------------
@@ -35,7 +38,7 @@ Credits
 
 RainfallGridder was created in 2026 by Tom Keel as part of the `Floods & Droughts Research Infrastructure (FDRI) <https://fdri.org.uk/>`_ project led by the `UK Centre for Ecology & Hydrology (UKCEH) <https://www.ceh.ac.uk/>`_
 
-Built with `Cookiecutter <https://github.com/cookiecutter/cookiecutter>`_` and the `audreyfeldroy/cookiecutter-pypackage <https://github.com/audreyfeldroy/cookiecutter-pypackage>`_ project template.
+Built with `Cookiecutter <https://github.com/cookiecutter/cookiecutter>`_ and the `audreyfeldroy/cookiecutter-pypackage <https://github.com/audreyfeldroy/cookiecutter-pypackage>`_ project template.
 
 
 
