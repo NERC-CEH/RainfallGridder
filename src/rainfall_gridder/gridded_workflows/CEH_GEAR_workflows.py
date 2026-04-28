@@ -189,19 +189,18 @@ def ceh_gear_subdaily_workflow(
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
 
-        combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col)
+        combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
         combined_batch_ds = combined_batch_ds.chunk("auto")
         del sub_daily_ceh_gear_batch
 
         if first_write:
-            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, mode="w", zarr_format=2)
+            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
             first_write = False
         else:
-            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, append_dim="time", zarr_format=2)
+            combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2)
 
         del combined_batch_ds
         # batch_saving_utils.write_to_zarr(
-        #     config.output_dir / config.output_zarr_name, zarr_format=2
         # )  # Check if Zarr 3 can be used
 
 
