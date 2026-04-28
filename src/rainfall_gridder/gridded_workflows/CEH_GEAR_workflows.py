@@ -196,8 +196,12 @@ def ceh_gear_subdaily_workflow(
         if first_write:
             combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
             first_write = False
+            if config.verbose:
+                print("First batch written.")
         else:
             combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2)
+            if config.verbose:
+                print("Next batch written.")
 
         del combined_batch_ds
         # batch_saving_utils.write_to_zarr(
