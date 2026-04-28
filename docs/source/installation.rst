@@ -29,6 +29,15 @@ Install options
 
             pip install RainfallGridder
 
+    .. tab-item:: :iconify:`devicon:codeberg-wordmark` From Source
+
+        .. code-block:: bash
+
+            git clone https://codeberg.org/CEH-HOTDOG/RainfallGridder
+            cd RainfallGridder
+            uv sync
+
+
 Importing
 =========
 
