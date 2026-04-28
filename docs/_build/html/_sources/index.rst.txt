@@ -2,13 +2,13 @@
 
 :layout: landing
 
-===============
-RainfallGridder
-===============
+====
+test
+====
 
 .. rst-class:: lead
 
-    Python package for interpolating rainfall data from rain gauges onto a regular grid.
+    A short description of the project.
 
 Current version: |release|
 
