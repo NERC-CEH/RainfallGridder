@@ -1,12 +1,15 @@
-# Contributing
+Contributing
+============
 
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.
 
 You can contribute in many ways:
 
-## Types of Contributions
+Types of Contributions
+----------------------
 
-### Report Bugs
+Report Bugs
+~~~~~~~~~~~
 
 Report bugs at https://codeberg.org/thomasjkeel/RainfallGridder/issues.
 
@@ -16,15 +19,17 @@ If you are reporting a bug, please include:
 - Any details about your local setup that might be helpful in troubleshooting.
 - Detailed steps to reproduce the bug.
 
-### Fix Bugs
+Fix Bugs
+~~~~~~~~
 
 Look through the Codeberg issues for bugs. Anything tagged with "bug" and "help wanted" is open to whoever wants to implement it.
 
-### Implement Features
+Implement Features
 
 Look through the Codeberg issues for features. Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it.
 
-### Write Documentation
+Write Documentation
+~~~~~~~~~~~~~~~~~~~
 
 RainfallGridder could always use more documentation, whether as part of the official docs, in docstrings, or even on the web in blog posts, articles, and such.
 
@@ -36,7 +41,8 @@ just docs-serve
 
 This starts a local server at http://localhost:8000 with live reload. Edit files in `docs/` or add docstrings to your code (the API reference page is auto-generated).
 
-### Submit Feedback
+Submit Feedback
+~~~~~~~~~~~~~~~
 
 The best way to send feedback is to file an issue at https://codeberg.org/thomasjkeel/RainfallGridder/issues.
 
@@ -46,7 +52,8 @@ If you are proposing a feature:
 - Keep the scope as narrow as possible, to make it easier to implement.
 - Remember that this is a volunteer-driven project, and that contributions are welcome :)
 
-## Get Started!
+Get Started!
+------------
 
 Ready to contribute? Here's how to set up `rainfall_gridder` for local development.
 
@@ -94,15 +101,17 @@ Ready to contribute? Here's how to set up `rainfall_gridder` for local developme
 
 7. Submit a pull request through the Codeberg website.
 
-## Pull Request Guidelines
+Pull Request Guidelines
+-----------------------
 
 Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.md.
+2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.rst.
 3. The pull request should work for Python 3.12, 3.13, and 3.14. Tests run in Codeberg Actions on every pull request to the main branch, make sure that the tests pass for all supported Python versions.
 
-## Tips
+Tips
+----
 
 To run a subset of tests:
 
@@ -110,13 +119,14 @@ To run a subset of tests:
 uv run pytest tests/
 ```
 
-## Releasing a New Version
+Releasing a New Version
+-----------------------
 
 1. **Bump the version** and **write the changelog:**
    ```bash
    uv version <version>        # or: uv version --bump minor
    ```
-   Then write `CHANGELOG/<version>.md`. See previous entries for the format.
+   Then write `CHANGELOG.rst`. See previous entries for the format.
 2. **Commit:**
    ```bash
    git add pyproject.toml uv.lock CHANGELOG/
@@ -132,6 +142,7 @@ uv run pytest tests/
    generates SLSA provenance attestations, and publishes to PyPI via
    trusted publishing.
 
-## Code of Conduct
+Code of Conduct
+---------------
 
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.rst). By participating in this project you agree to abide by its terms.
