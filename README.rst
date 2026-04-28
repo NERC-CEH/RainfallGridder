@@ -18,6 +18,7 @@ Documentation
 -------------
 
 Incoming...
+
 .. Documentation is built with [Sphinx](https://www.sphinx-doc.org/en/master/index.html) and deployed to Codeberg Pages.
 
 .. [//]: # (* **Live site:** https://CEH-HOTDOG.codeberg.io/RainfallGridder/)
@@ -32,9 +33,9 @@ Incoming...
 Credits
 -------
 
-RainfallGridder was created in 2026 by Tom Keel as part of the [Floods & Droughts Research Infrastructure (FDRI)](https://fdri.org.uk/) project led by the [UK Centre for Ecology & Hydrology](https://www.ceh.ac.uk/)
+RainfallGridder was created in 2026 by Tom Keel as part of the `Floods & Droughts Research Infrastructure (FDRI) <https://fdri.org.uk/>`_ project led by the `UK Centre for Ecology & Hydrology (UKCEH) <https://www.ceh.ac.uk/>`_
 
-Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.
+Built with `Cookiecutter <https://github.com/cookiecutter/cookiecutter>`_` and the `audreyfeldroy/cookiecutter-pypackage <https://github.com/audreyfeldroy/cookiecutter-pypackage>`_ project template.
 
 
 
