@@ -51,7 +51,7 @@ site/
 
 # Sphinx documentation
 docs/_build/
-!docs/_build/html/_static/css/my_theme.css
+!docs/_build/html/_static/css/custom.css
 
 # IDE files
 .idea/
