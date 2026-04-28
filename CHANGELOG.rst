@@ -8,6 +8,7 @@ Added
 ~~~~~
 * Add CEHGEARSubDailyProducer (part 4 of 4)
 * Fix bugs with CEH_GEAR_workflows
+* Prepare very bare bones docs and readme in Sphinx
 
 [0.0.5] - 2026-04-27
 --------------------
