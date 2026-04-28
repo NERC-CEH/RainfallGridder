@@ -8,7 +8,7 @@
 
     .. image:: /_static/rainfall_gridder_logo_circle.png
         :alt: RainfallGridder
-        :width: 250
+        :width: 350
     
 
     .. container::
@@ -20,26 +20,21 @@
         .. container:: badges
            :name: badges
 
+           .. image:: https://badges.frapsoft.com/os/v1/open-source.svg?v=103
+              :alt: Open Source
+
+           .. image:: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
+              :alt: Made with Python
+
+           .. image:: https://img.shields.io/badge/License-GPLv3-blue.svg
+              :alt: GPL v3 License
+
            .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json
               :alt: UV
 
            .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
               :alt: Ruff Version
 
-           .. image:: https://img.shields.io/badge/License-GPLv3-blue.svg
-              :alt: GPL v3 License
-
-
-            .. .. image:: https://readthedocs.org/projects/falco-site/badge/?version=latest&style=flat
-            ..   :alt: Documentation Status
-         ..   .. image:: https://img.shields.io/pypi/pyversions/rainfall_gridder-app
-         ..    ..   :alt: Supported Python Versions
-
-         ..   .. image:: https://img.shields.io/pypi/dm/falco-cli
-         ..      :alt: PyPI Downloads
-
-           .. image:: https://badge.fury.io/py/falco-app.svg
-              :alt: PyPI Version
 
 
 .. rst-class:: lead
@@ -47,7 +42,6 @@
     Python package for interpolating rainfall data from rain gauges onto a regular grid
 
 
-Current version: |release|
 
 .. container:: buttons
 
@@ -106,7 +100,6 @@ resolution, periodicity, and anchor points.
          :target: https://fdri.org.uk
 
 
-
 Community
 =========
 
@@ -131,3 +124,6 @@ This project is licensed under the `GNU GPL v3.0 <https://codeberg.org/CEH-HOTDO
     :caption: API reference
 
     api
+
+.. Current version: |release|
+

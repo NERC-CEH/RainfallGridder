@@ -1,3 +1,33 @@
+#home-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 20px;
+}
+
+@media (max-width: 600px) {
+    #home-head {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+#home-head h1 {
+    font-size: 4.2rem;
+    margin-top: 3.4rem;
+    margin-bottom: 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+#home-head h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1.2rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+
 .sphinx-contributors img {
     border-radius: 50%;
 }
