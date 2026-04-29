@@ -119,6 +119,7 @@ This project is licensed under the `GNU GPL v3.0 <https://codeberg.org/CEH-HOTDO
     :caption: Getting started
 
     installation
+    getting_started
 
 .. toctree::
     :hidden:

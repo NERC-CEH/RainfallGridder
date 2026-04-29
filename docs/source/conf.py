@@ -23,6 +23,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_contributors",
     "sphinx_iconify",
+    
     # Optional: uncomment as needed
     # "sphinx_tabs.tabs",
     # "sphinxcontrib.mermaid",
@@ -37,6 +38,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 autosummary_generate = True
 autodoc_typehints = "description"
 autoclass_content = "class"
+
+# The master toctree document.
+master_doc = "index"
 
 # -- HTML output -------------------------------------------------------------
 html_theme = "shibuya"

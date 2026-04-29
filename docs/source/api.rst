@@ -3,8 +3,21 @@ API Reference
 
 .. currentmodule:: rainfall_gridder
 
-.. autosummary::
-   :toctree: _autosummary
-   :recursive:
+The 4 key modules
+-----------------
 
-   rainfall_gridder
+.. autofunction:: DataPreparer
+.. autofunction:: QualityController
+.. autofunction:: GaugeVsGriddedCorrelator
+.. autofunction:: CEHGEARSubDailyProducer
+
+   
+
+
+Full API
+--------
+
+.. automodule:: rainfall_gridder
+   :members:
+   :undoc-members:
+   :show-inheritance:
