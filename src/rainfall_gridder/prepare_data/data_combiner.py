@@ -84,7 +84,7 @@ class RainGaugeSegmentCombiner:
         return calculate_change_points(self.metadata, self.station_id_col)
 
     def _get_combined_station_col_name(self, station_id_col):
-        return "-".join(str(station_id) for station_id in self.metadata[station_id_col].unique().to_list())
+        return "-".join(str(station_id) for station_id in sorted(self.metadata[station_id_col].unique().to_list()))
 
     def loop_through_and_merge_data(
         self,

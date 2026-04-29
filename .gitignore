@@ -49,6 +49,9 @@ dmypy.json
 # Documentation build output
 site/
 
+# Sphinx documentation
+docs/_build/
+
 # IDE files
 .idea/
 .vscode/

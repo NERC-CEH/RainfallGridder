@@ -1,8 +1,12 @@
 from pathlib import Path
+import polars as pl
 import xarray as xr
 from rainfall_gridder.config.schema import ColumnConfig, WorkflowConfig
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control.QualityController import QualityController
+from rainfall_gridder.prepare_data.gauge_grid_correlator import BatchGaugeVsGriddedCorrelator
+from rainfall_gridder.generate_grids.ceh_gear_subdaily_producer import CEHGEARSubDailyProducer
+from rainfall_gridder.utils import batch_saving_utils, get_ceh_gear_data, spatial_utils, xarray_utils
 
 
 def ceh_gear_subdaily_workflow(
@@ -89,9 +93,9 @@ def ceh_gear_subdaily_workflow(
 
     # 2. Quality Control
     print("2. Quality control")
-    data, metadata, summary_of_qc, qc_rulebase_summary = QualityController.run(
-        rainfall_data,
-        rainfall_metadata,
+    qcd_rainfall_data, qcd_rainfall_metadata, summary_of_qc, qc_rulebase_summary = QualityController.run(
+        rainfall_data=rainfall_data,
+        rainfall_metadata=rainfall_metadata,
         station_id_col=config.data_columns.station_id_col,
         station_name_col=config.data_columns.station_name_col,
         date_time_col=config.data_columns.date_time_col,
@@ -112,26 +116,126 @@ def ceh_gear_subdaily_workflow(
         save_data=True,
         return_data=True,
     )
+    # 3. Correlate gauge and gridded data (agg. to daily)
+    print("3. Correlate gauge data to gridded data")
+    station_ids_to_correlate = qcd_rainfall_metadata[config.data_columns.station_id_col].unique()
+    corrd_rainfall_metadata = BatchGaugeVsGriddedCorrelator.run(
+        gauge_data=qcd_rainfall_data,
+        gauge_metadata=qcd_rainfall_metadata,
+        gridded_rainfall_data=gridded_rainfall,
+        gridded_rainfall_col=config.gridded_rainfall_col,
+        station_ids_to_correlate=station_ids_to_correlate,
+        station_id_col=config.data_columns.station_id_col,
+        precipitation_col=config.data_columns.precipitation_col,
+        date_time_col=config.data_columns.date_time_col,
+        start_date_col=config.data_columns.start_date_col,
+        end_date_col=config.data_columns.end_date_col,
+        easting_col=config.data_columns.easting_col,
+        northing_col=config.data_columns.northing_col,
+        rainfall_offset_hours=config.rainfall_offset_hours,
+        verbose=config.verbose,
+        correlation_threshold=config.correlation_threshold,
+        output_dir=config.output_dir,
+        save_metadata=True,
+        return_metadata=True,
+    )
 
-    # 3. Generate grids
-    print("3. Generate grids")
-    # all_days = batch_saving_utils.get_all_days(
-    #     metadata, start_date_col=config.start_date_col, end_date_col=config.end_date_col
-    # )
+    # 4. Generate grids
+    print("4. Generate grids and save to Zarr")
+    # Get output grid dims (1 km by 1 km and same as HadUK-Grid)
+    output_grid = get_ceh_gear_data.get_uk_mask_haduk_coords()
+    # Subset/clip output grid and gridded daily to metadata bounds
+    gridded_rainfall, output_grid = clip_rainfall_grids_to_metadata_bounds(
+        gridded_rainfall=gridded_rainfall, output_grid=output_grid, config=config, metadata=corrd_rainfall_metadata
+    )
 
-    # for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
-    #     # batch_results = []
-    #     for time_step in batch_days:
-    #         # one_day_gridded_daily = gridded_daily.sel(time=time_step.replace(minute=0, second=0, microsecond=0)).where(uk_mask) # subset_to_uk_mask to work with map multiplication
-    #         # ceh_gear_sub_daily_producer = CEHGEARSubDailyProducer(rainfall_data, metadata, time_step, data_resolution=TIME_RES,
-    #         #                                                 rain_gauge_col=PRECIPITATION_COL, station_id_col=STATION_ID_COL,
-    #         #                                                 easting_col=EASTING_COL, northing_col=NORTHING_COL, date_col=DATE_TIME_COL,
-    #         #                                                 hour_at_start_of_day=RAINFALL_OFFSET_HOURS)
-    #         # data, metadata = ceh_gear_subdaily_producer(data, metadata, config.output_dir, one_day_gridded)
-    #         pass
-    #     # combined_batch_ds = xr.concat(batch_results, dim=config.datetime_col)
-    #     # batch_saving_utils.write_to_zarr(config.output_zarr_file, zarr_format=2)
-    #     pass
+    # TODO: move higher up as I think all parts will use this
+    gridded_rainfall = xarray_utils.replace_daily_time_step_hour_with_zero(
+        gridded_rainfall, time_col="time"
+    )
 
-    # 4. Save outputs
-    return
+    produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid)
+
+    print(f"Output saved to: {config.output_dir / config.output_zarr_name}")
+    print("done!")
+
+
+def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
+    first_write = True
+    all_days = batch_saving_utils.get_all_days_in_input(
+        corrd_rainfall_metadata, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
+    )
+    for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
+        sub_daily_ceh_gear_batch = []
+        for time_step in batch_days:
+            if config.verbose:
+                print(f"starting {time_step}")
+            one_day_gridded_daily = gridded_rainfall.sel(
+                time=time_step.replace(minute=0, second=0, microsecond=0)
+            ).where(output_grid)  # subset_to_uk_mask to work with map multiplication
+
+            ceh_gear_sub_daily_producer = CEHGEARSubDailyProducer(
+                rainfall_data=qcd_rainfall_data,
+                rainfall_metadata=corrd_rainfall_metadata,
+                station_id_col=config.data_columns.station_id_col,
+                time_step=time_step,
+                time_res=config.time_res,
+                precipitation_col=config.data_columns.precipitation_col,
+                easting_col=config.data_columns.easting_col,
+                northing_col=config.data_columns.northing_col,
+                date_time_col=config.data_columns.date_time_col,
+                hour_at_start_of_day=config.rainfall_offset_hours,
+                verbose=config.verbose,
+            )
+            ceh_gear_sub_daily_one_day = ceh_gear_sub_daily_producer.produce_ceh_gear(
+                land_mask=output_grid,
+                one_day_gridded_daily=one_day_gridded_daily,
+                gridded_rainfall_col=config.gridded_rainfall_col,
+                output_rainfall_name="rainfall"
+            )
+            sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
+
+        write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
+
+def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
+    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
+    combined_batch_ds = combined_batch_ds.chunk("auto")
+    del sub_daily_ceh_gear_batch
+
+    if first_write:
+        combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
+        first_write = False
+        if config.verbose:
+            print("First batch written.")
+    else:
+        combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2)
+        if config.verbose:
+            print("Next batch written.")
+
+    del combined_batch_ds
+
+
+def clip_rainfall_grids_to_metadata_bounds(
+    gridded_rainfall: xr.Dataset, output_grid: xr.Dataset, config: WorkflowConfig, metadata: pl.DataFrame
+) -> tuple[xr.Dataset, xr.Dataset]:
+
+    gridded_rainfall = spatial_utils.clip_grid_to_bounds_with_buffer(
+        gridded_rainfall,
+        min_easting=metadata[config.data_columns.easting_col].min(),
+        max_easting=metadata[config.data_columns.easting_col].max(),
+        easting_buffer=metadata[config.data_columns.easting_col].std(),
+        min_northing=metadata[config.data_columns.northing_col].min(),
+        max_northing=metadata[config.data_columns.northing_col].max(),
+        northing_buffer=metadata[config.data_columns.northing_col].std(),
+    )
+
+    output_grid = spatial_utils.clip_grid_to_bounds_with_buffer(
+        output_grid,
+        min_easting=metadata[config.data_columns.easting_col].min(),
+        max_easting=metadata[config.data_columns.easting_col].max(),
+        easting_buffer=metadata[config.data_columns.easting_col].std(),
+        min_northing=metadata[config.data_columns.northing_col].min(),
+        max_northing=metadata[config.data_columns.northing_col].max(),
+        northing_buffer=metadata[config.data_columns.northing_col].std(),
+    )
+    return gridded_rainfall, output_grid

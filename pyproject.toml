@@ -4,9 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rainfall-gridder"
-version = "0.0.4"
+version = "0.1.0"
 description = "Python package for interpolating rainfall data onto a regular grid."
-readme = "README.md"
+readme = "README.rst"
 authors = [
   {name = "Tom Keel", email = "tomkee@ceh.ac.uk"}
 ]
@@ -15,9 +15,10 @@ maintainers = [
 ]
 classifiers = [
     "Typing :: Typed",
-    # TODO: Add additional classifiers as needed
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
 ]
-license = {text = "MIT"}
+license = { file = "LICENSE" }
 dependencies = [
     "typer",
     "rich",
@@ -45,6 +46,7 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typecheck" },
+    { include-group = "docs" },
 ]
 lint = [
     "ruff",
@@ -57,8 +59,16 @@ typecheck = [
     "ty",
 ]
 docs = [
-    "zensical",
-    "mkdocstrings-python",
+    "sphinx",
+    "shibuya>=2025.9.25",
+    "sphinx-copybutton",
+    "sphinx-design>=0.6.1",
+    "sphinx-iconify>=0.2.1",
+    "sphinx-autodoc-typehints",
+    "sphinx-autobuild",
+    "sphinx-contributors>=0.2.7",
+    "myst-parser",
+    "numpydoc",
 ]
 
 [project.urls]

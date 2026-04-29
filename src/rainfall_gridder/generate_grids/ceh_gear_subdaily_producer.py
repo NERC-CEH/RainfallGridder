@@ -17,37 +17,44 @@ MAX_DISTANCE_TO_GAUGE_M = 50000
 class CEHGEARSubDailyProducer:
     def __init__(
         self,
-        rain_gauge_data: pl.DataFrame,
-        rain_gauge_metadata: pl.DataFrame,
+        rainfall_data: pl.DataFrame,
+        rainfall_metadata: pl.DataFrame,
+        station_id_col: str,
         time_step: datetime.datetime,
-        data_resolution: str,
-        rain_gauge_col: str,
+        time_res: str,
+        precipitation_col: str,
         easting_col: str,
         northing_col: str,
-        station_id_col: str,
-        date_col: str,
+        date_time_col: str,
         hour_at_start_of_day: int,
+        verbose: bool,
     ):
-        assert data_resolution in ["1h", "15m"], (
-            f"Data resolution needs to be either '15m' or '1h', currently: {data_resolution}."
-        )
-        self.rain_gauge_metadata = rain_gauge_metadata
+        """
+        CEH-GEAR subdaily producer.
+
+        Parameters
+        ----------
+
+        """
+        assert time_res in ["1h", "15m"], f"Data resolution needs to be either '15m' or '1h', currently: {time_res}."
+        self.rainfall_metadata = rainfall_metadata
         self.time_step = time_step
-        self.data_resolution = data_resolution
-        self.rain_gauge_col = rain_gauge_col
+        self.time_res = time_res
+        self.precipitation_col = precipitation_col
         self.easting_col = easting_col
         self.northing_col = northing_col
         self.station_id_col = station_id_col
-        self.date_col = date_col
+        self.date_time_col = date_time_col
         self.hour_at_start_of_day = hour_at_start_of_day
-        self.one_day_rain_gauge_data = self._get_one_day_rain_gauge_data(rain_gauge_data)
+        self.verbose = verbose
+        self.one_day_rainfall_data = self._get_one_day_rainfall_data(rainfall_data)
         self.one_day_daily_totals = self._get_daily_gauge_totals()
         self.gauge_daily_info = self._get_daily_info()
-        self.gauge_daily_totals = self.gauge_daily_info[self.rain_gauge_col].to_numpy()
+        self.gauge_daily_totals = self.gauge_daily_info[self.precipitation_col].to_numpy()
 
-    def _get_one_day_rain_gauge_data(
+    def _get_one_day_rainfall_data(
         self,
-        rain_gauge_data: pl.DataFrame,
+        rainfall_data: pl.DataFrame,
     ) -> pl.DataFrame:
         # TODO: what if time-step is not at the start of the day?
         start = datetime.datetime(
@@ -59,21 +66,21 @@ class CEHGEARSubDailyProducer:
             0,
         )
         end = start + datetime.timedelta(hours=24)  # e.g. 9:00 AM next day
-        rain_gauge_data = rain_gauge_data.sort((self.station_id_col, self.date_col))
-        return rain_gauge_data.filter(
-            (pl.col(self.station_id_col).is_in(self.rain_gauge_metadata[self.station_id_col].unique().to_list()))
-            & (pl.col(self.date_col) >= start)
-            & (pl.col(self.date_col) < end)
+        rainfall_data = rainfall_data.sort((self.station_id_col, self.date_time_col))
+        return rainfall_data.filter(
+            (pl.col(self.station_id_col).is_in(self.rainfall_metadata[self.station_id_col].unique().to_list()))
+            & (pl.col(self.date_time_col) >= start)
+            & (pl.col(self.date_time_col) < end)
         )
 
     def _get_daily_gauge_totals(self) -> pl.DataFrame:
-        n_time_steps = 23 if self.data_resolution == "1h" else 95
+        n_time_steps = 23 if self.time_res == "1h" else 95
         return (
-            self.one_day_rain_gauge_data.group_by(self.station_id_col)
+            self.one_day_rainfall_data.group_by(self.station_id_col)
             .agg(
                 [
-                    pl.col(self.rain_gauge_col).sum().alias(self.rain_gauge_col),
-                    pl.col(self.rain_gauge_col).count().alias("_timestep_count"),
+                    pl.col(self.precipitation_col).sum().alias(self.precipitation_col),
+                    pl.col(self.precipitation_col).count().alias("_timestep_count"),
                 ]
             )
             .filter(pl.col("_timestep_count") >= n_time_steps)
@@ -82,7 +89,7 @@ class CEHGEARSubDailyProducer:
 
     def _get_daily_info(self) -> pl.DataFrame:
         gauge_daily_info = self.one_day_daily_totals.join(
-            self.rain_gauge_metadata.select([self.station_id_col, self.easting_col, self.northing_col]),
+            self.rainfall_metadata.select([self.station_id_col, self.easting_col, self.northing_col]),
             on=self.station_id_col,
             how="inner",
         )
@@ -90,7 +97,7 @@ class CEHGEARSubDailyProducer:
             pl.struct([pl.col(self.easting_col), pl.col(self.northing_col)]).alias("points")
         )
         # Drop all daily totals that are NaN from distance calculation
-        gauge_daily_info = gauge_daily_info.drop_nans(subset=[self.rain_gauge_col])
+        gauge_daily_info = gauge_daily_info.drop_nans(subset=[self.precipitation_col])
 
         # Important in current method that site_id is sorted as we are converting this data to numpy arrays
         return gauge_daily_info.sort(self.station_id_col)
@@ -184,19 +191,17 @@ class CEHGEARSubDailyProducer:
         # 2.1 Format data before partioning and looping through
         # 2.1.1 prefilter out gauge stations not in the day
         station_ids_in_day = self.gauge_daily_info[self.station_id_col].to_list()
-        one_day_rain_gauge_data = self.one_day_rain_gauge_data.filter(
-            pl.col(self.station_id_col).is_in(station_ids_in_day)
-        )
-        one_day_rain_gauge_data.sort((self.station_id_col, self.date_col))
+        one_day_rainfall_data = self.one_day_rainfall_data.filter(pl.col(self.station_id_col).is_in(station_ids_in_day))
+        one_day_rainfall_data.sort((self.station_id_col, self.date_time_col))
         # 2.1.2 Partition pl.Dataframe into individual time steps
-        all_time_steps_gauge_data_groups = one_day_rain_gauge_data.partition_by(self.date_col, as_dict=True)
+        all_time_steps_gauge_data_groups = one_day_rainfall_data.partition_by(self.date_time_col, as_dict=True)
 
         for time_step, gauge_one_timestep in all_time_steps_gauge_data_groups.items():
             time_step = time_step[0]  # returned as a tuple, so need to get first item
             assert len(gauge_one_timestep) == gauge_points.shape[0], (
                 "The number of gauges with data need to be the same as number of gauges"
             )
-            gauge_one_timestep_rainfall = gauge_one_timestep[self.rain_gauge_col].to_numpy()
+            gauge_one_timestep_rainfall = gauge_one_timestep[self.precipitation_col].to_numpy()
 
             gauge_timestep_interpolator = scipy.interpolate.NearestNDInterpolator(
                 gauge_points, gauge_one_timestep_rainfall
@@ -214,11 +219,11 @@ class CEHGEARSubDailyProducer:
             # Statistical disaggregation
             # stat_disag_func = (
             #     get_stat_disag_fraction_hourly
-            #     if self.data_resolution == "1h"
+            #     if self.time_res == "1h"
             #     else get_stat_disag_fraction_15min
             # )
             grid_disag_func = (
-                get_stat_disag_fraction_15min_grid if self.data_resolution == "15m" else get_stat_disag_fraction_1h_grid
+                get_stat_disag_fraction_15min_grid if self.time_res == "15m" else get_stat_disag_fraction_1h_grid
             )
             masked_one_day_gridded_daily = one_day_gridded_daily[gridded_rainfall_col].where(cells_to_stat_disag)
             if not masked_one_day_gridded_daily.isnull().all():
@@ -238,7 +243,8 @@ class CEHGEARSubDailyProducer:
                 combined_factor_grid = factor_grid.where(cells_to_stat_disag_frac.isnull(), cells_to_stat_disag_frac)
             else:
                 # There are no cells to stat disaggregate
-                print("To remove: there are no cells to stat disagg")
+                if self.verbose:
+                    print("To remove: there are no cells to stat disagg")
                 combined_factor_grid = factor_grid
 
             # set time
@@ -253,7 +259,7 @@ class CEHGEARSubDailyProducer:
         one_day_gridded_daily: xr.Dataset,
         gridded_rainfall_col: str,
         output_rainfall_name: str = "rainfall",
-    ):
+    ) -> xr.Dataset:
         # 1. Get coord grids
         x_coords, y_coords, x_grid, y_grid = get_xy_coordinate_grids(land_mask, return_coords=True)
         # 2. Run interpolation for distance grid and daily totals

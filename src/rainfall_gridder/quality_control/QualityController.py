@@ -98,15 +98,15 @@ class QualityController:
             self.rainfall_metadata = rainfall_metadata
         self.rainfall_data = rainfall_data
 
-    def _add_latlon_to_rainfall_metaddata(self, rainfall_metadata: pl.DataFrame) -> pl.DataFrame:
+    def _add_latlon_to_rainfall_metadata(self, rainfall_metadata: pl.DataFrame) -> pl.DataFrame:
         return spatial_utils.crs_to_crs(
             rainfall_metadata,
             crs_in=self.input_crs,
             crs_out="EPSG:4326",
             east_west_col_in=self.easting_col,
             north_south_col_in=self.northing_col,
-            east_west_col_out="latitude",
-            north_south_col_out="longitude",
+            east_west_col_out="longitude",
+            north_south_col_out="latitude",
         )
 
     def _set_up_intenseqc_framework(self) -> tuple[dict, list]:
@@ -140,7 +140,7 @@ class QualityController:
 
     @classmethod
     def run(
-        cls, save_data: bool = True, return_data: bool = False, partition_by_columns: list = None, **kwargs
+        cls, save_data: bool, return_data: bool, partition_by_columns: list = None, **kwargs
     ) -> None | tuple[pl.DataFrame, pl.DataFrame]:
         """
         Run the quality controller and return and/or save the prepared data.
@@ -148,9 +148,9 @@ class QualityController:
         Parameters
         ----------
         save_data:
-            Whether to save data to output directory (default True)
+            Whether to save data to output directory
         return_data:
-            Whether to return dataframes (default False)
+            Whether to return dataframes
         partition_by_columns:
             List of columns to partition the parquet files by if saving outputs
 
@@ -171,6 +171,8 @@ class QualityController:
                 print(f"Saving data to {quality_controller.output_dir}")
             quality_controller.save_qcd_data(partition_by_columns)
             quality_controller.save_qcd_metadata()
+            quality_controller.save_summary_of_qc()
+            quality_controller.save_qc_rulebase_summary()
         else:
             if quality_controller.verbose:
                 print("Data not saved")
@@ -182,9 +184,11 @@ class QualityController:
                 quality_controller.qc_rulebase_summary,
             )
 
-    def get_nearest_neighbour(self, nearby_gauge_loader, station_id):
-        if len(nearby_gauge_loader.nearby_rain_gauge_distances) > 0:
-            return nearby_gauge_loader.nearby_rain_gauge_distances.sort("distance")[0][self.station_id_col].item()
+    def get_nearest_neighbour(self, nearby_rainfall_data_loader, station_id):
+        if len(nearby_rainfall_data_loader.nearby_rain_gauge_distances) > 0:
+            return nearby_rainfall_data_loader.nearby_rain_gauge_distances.sort("distance")[0][
+                self.station_id_col
+            ].item()
         else:
             if self.verbose:
                 print(f"Station ID: {station_id} has no neighbours\n")
@@ -199,14 +203,14 @@ class QualityController:
 
         # begin loop
         for ind, station_id in enumerate(unique_station_ids):
-            nearby_gauge_loader = NearbyRainfallDataLoader(
+            nearby_rainfall_data_loader = NearbyRainfallDataLoader(
                 metadata=self.rainfall_metadata,
                 station_id=station_id,
                 date_time_col=self.date_time_col,
                 precipitation_col=self.precipitation_col,
                 station_id_col=self.station_id_col,
-                start_datetime_col=self.start_date_col,
-                end_datetime_col=self.end_date_col,
+                start_date_col=self.start_date_col,
+                end_date_col=self.end_date_col,
                 min_overlap_days=self.min_n_timesteps / time_res_to_n_time_steps_in_day[self.time_res],
                 rainfall_data_source="df",
                 rainfall_data_pl=self.rainfall_data,
@@ -215,17 +219,16 @@ class QualityController:
             )
 
             # Check if that station actually has any neighbours
-            if nearby_gauge_loader.nearest_station_id is None:
+            if nearby_rainfall_data_loader.nearest_station_id is None:
                 if self.verbose:
-                    print(f"Station ID: {nearby_gauge_loader.station_id} has no neighbours\n")
+                    print(f"Station ID: {nearby_rainfall_data_loader.station_id} has no neighbours\n")
                 continue
 
-            nearby_metadata = nearby_gauge_loader.nearby_metadata
-            nearby_rainfall_data = nearby_gauge_loader.load_nearby_gauge_data(rainfall_data=self.rainfall_data)
+            nearby_metadata = nearby_rainfall_data_loader.nearby_metadata
+            nearby_rainfall_data = nearby_rainfall_data_loader.nearby_rainfall_for_rainfallqc
 
             # Update shared QC kwargs with latest values from nearby gauge loader
-            self.update_shared_qc_kwargs()
-
+            self.update_shared_qc_kwargs(nearby_rainfall_data_loader)
             # Run QC framework
             try:
                 assert len(nearby_rainfall_data) > self.min_n_timesteps, (
@@ -243,10 +246,18 @@ class QualityController:
                 continue
 
             # Summarise QC flags into statistics
-            qc_summariser = QCSummariser.run(station_id, nearby_metadata, nearby_rainfall_data, qc_result)
+            qc_summariser = QCSummariser(
+                station_id=station_id,
+                rainfall_data=nearby_rainfall_data,
+                nearby_metadata=nearby_metadata,
+                qc_result=qc_result,
+                verbose=self.verbose,
+            )
 
             # Apply rulebase
-            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(qc_summariser.all_flags, station_id)
+            rule_removed_rows, n_rows_removed = apply_intenseQC_rulebase(
+                qc_summariser.all_flags, station_id, time_step=self.time_res
+            )
             if self.verbose:
                 print(
                     f"Station ID: {station_id}\tA total of {qc_summariser.all_flags['all_flags_by_row'][station_id].count() - rule_removed_rows[station_id].count()} rows were removed"
@@ -311,7 +322,7 @@ class QualityController:
             raise RuntimeError("You must call quality_control_data() before save_final_metadata()")
         self.qcd_metadata.write_parquet(self.output_dir / "qcd_metadata.parquet")
         if self.verbose:
-            print(f"QC'd rainfall metadata available at: {self.output_dir / 'prepared_metadata.parquet'}")
+            print(f"QC'd rainfall metadata available at: {self.output_dir / 'qcd_metadata.parquet'}")
 
     def save_summary_of_qc(self) -> None:
         if self.summary_of_qc is None:
@@ -327,23 +338,23 @@ class QualityController:
         if self.verbose:
             print(f"Summary of QC rulebase available at: {self.output_dir / 'qc_rulebase_summary.parquet'}")
 
-    def update_shared_qc_kwargs(self, nearby_gauge_loader: NearbyRainfallDataLoader) -> None:
+    def update_shared_qc_kwargs(self, nearby_rainfall_data_loader: NearbyRainfallDataLoader) -> None:
         """
         Update all the shared keyword arguments.
 
         TODO: Check this updating in the loop properly.
         """
-        self.qc_kwargs["shared"]["rain_col"] = nearby_gauge_loader.station_id
-        self.qc_kwargs["shared"]["target_gauge_col"] = nearby_gauge_loader.station_id
-        self.qc_kwargs["shared"]["nearest_neighbour"] = nearby_gauge_loader.nearest_station_id
-        self.qc_kwargs["shared"]["list_of_nearest_stations"] = nearby_gauge_loader.nearby_rain_gauge_distances[
+        self.qc_kwargs["shared"]["rain_col"] = nearby_rainfall_data_loader.station_id
+        self.qc_kwargs["shared"]["target_gauge_col"] = nearby_rainfall_data_loader.station_id
+        self.qc_kwargs["shared"]["nearest_neighbour"] = nearby_rainfall_data_loader.nearest_station_id
+        self.qc_kwargs["shared"]["list_of_nearest_stations"] = nearby_rainfall_data_loader.nearby_rain_gauge_distances[
             self.station_id_col
         ].to_list()
-        self.qc_kwargs["shared"]["gauge_lat"] = nearby_gauge_loader.nearby_metadata.filter(
-            pl.col(self.station_id_col) == nearby_gauge_loader.station_id
+        self.qc_kwargs["shared"]["gauge_lat"] = nearby_rainfall_data_loader.nearby_metadata.filter(
+            pl.col(self.station_id_col) == nearby_rainfall_data_loader.station_id
         )["latitude"]
-        self.qc_kwargs["shared"]["gauge_lon"] = nearby_gauge_loader.nearby_metadata.filter(
-            pl.col(self.station_id_col) == nearby_gauge_loader.station_id
+        self.qc_kwargs["shared"]["gauge_lon"] = nearby_rainfall_data_loader.nearby_metadata.filter(
+            pl.col(self.station_id_col) == nearby_rainfall_data_loader.station_id
         )["longitude"]
 
 
@@ -448,6 +459,8 @@ class QCSummariser:
         summary_of_qc["total_rows"] = len(self.all_flags["all_flags_by_row"])
 
         for qc_key in NON_ROWWISE_QC_CHECKS:
+            if qc_key not in self.all_flags:
+                continue
             if isinstance(self.all_flags[qc_key], list):
                 # sum number of years flagged
                 summary_of_qc[NON_ROWWISE_QC_CONVERTER[qc_key]] = sum(item != 0 for item in self.all_flags[qc_key])
