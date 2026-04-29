@@ -16,6 +16,7 @@
         .. raw:: html
 
             <h1>RainfallGridder</h1>
+            <h2>Interpolate rain gauge data onto regular grids</h2>
 
         .. container:: badges
            :name: badges
@@ -39,7 +40,6 @@
 
 .. rst-class:: lead
 
-    Python package for interpolating rainfall data from rain gauges onto a regular grid
 
 
 
@@ -70,18 +70,20 @@
       Learn more about the UK's Floods & Droughts Research Infrastructure Project.
 
 
-Why RainfallGridder?
-====================
+What is RainfallGridder?
+========================
 
-The goal of Time-Stream is to provide a user friendly Python library for processing time series data, particularly
-in the hydrological and environmental domain. It is built on top of `Polars <https://docs.pola.rs/>`_, which handles
-efficient DataFrame processes, whilst adding on specific functionality to help you manage time properties such as
-resolution, periodicity, and anchor points.
+RainfallGridder provides a user-friendly processing pipeline for generating gridded rainfall data.
+It was built out of a need to make the procedure for generating high-resolution gridded rainfall data products more *open* and *extendable*, and will deployed to build the 
+CEH-GEAR 15 min (an extension of the `CEH-GEAR 1h product <https://catalogue.ceh.ac.uk/documents/fc9423d6-3d54-467f-bb2b-fc7357a3941f>`_ developed out of UKCEH).
+It is built on top of `Polars <https://docs.pola.rs/>`_, which handles efficient DataFrame processes (like Pandas, but quicker).
 
-- **Explicit time property management**: Perform methods on your data without worrying about whether it's handling your time data correctly.
-- **Domain knowledge**: Built by software engineers and data scientists from `UKCEH <https://www.ceh.ac.uk/>`_, with years of experience working with hydrological and environmental data.
-- **Building blocks**: Modular design for aggregation, flagging, QC, and infilling.
-- **Polars performance**: Polars under the hood, vectorized paths where possible.
+The original methodology for CEH-GEAR 1h forms the outline of the pipeline this package provides. That is a 4-step procedure for:
+        1. Preparing your rain gauge data for gridding (combining duplicates by location)
+        2. Quality controlling rain gauge data with `RainfallQC <https://codeberg.org/CEH-HOTDOG/RainfallQC>`_ and the `IntenseQC rulebase <https://www.sciencedirect.com/science/article/pii/S1364815221002127#tbl2>`_
+        3. Correlating values daily sums of rain gauges to nearest daily gridded rainfall
+        4. Generating grids using nearest-neighbour interpolation
+
 
 .. container:: image-row
 
