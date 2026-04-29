@@ -2,11 +2,12 @@
 ..         :alt: RainfallGridder
 ..         :width: 350
 
-.. figure:: https://codeberg.org/CEH-HOTDOG/RainfallGridder/src/branch/main/docs/source/_static/rainfall_gridder_logo_circle.png
+.. figure:: docs/source/_static/rainfall_gridder_logo_circle.png
    :align: center
    :height: 250px
    :width: 300px
 
+<img src="docs/source/_static/rainfall_gridder_logo_circle.png" alt="Logo" width="250"/>
 
 ===============
 RainfallGridder
