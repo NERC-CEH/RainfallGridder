@@ -1,13 +1,7 @@
-.. .. image:: /_static/rainfall_gridder_logo_circle.png
-..         :alt: RainfallGridder
-..         :width: 350
-
 .. figure:: docs/source/_static/rainfall_gridder_logo_circle.png
    :align: center
    :height: 250px
    :width: 300px
-
-<img src="docs/source/_static/rainfall_gridder_logo_circle.png" alt="Logo" width="250"/>
 
 ===============
 RainfallGridder
