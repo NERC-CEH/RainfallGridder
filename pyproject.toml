@@ -68,6 +68,7 @@ docs = [
     "sphinx-autobuild",
     "sphinx-contributors>=0.2.7",
     "myst-parser",
+    "numpydoc",
 ]
 
 [project.urls]
