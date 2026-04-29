@@ -55,7 +55,7 @@
     :gutter: 2
 
     .. grid-item-card:: :octicon:`repo-template` Getting Started
-      :link: getting_started
+      :link: usage.html
 
       A collection of tutorials for setting up and using RainfallGridder. 
 
@@ -119,7 +119,7 @@ This project is licensed under the `GNU GPL v3.0 <https://codeberg.org/CEH-HOTDO
     :caption: Getting started
 
     installation
-    getting_started
+    usage
 
 .. toctree::
     :hidden:
@@ -127,6 +127,15 @@ This project is licensed under the `GNU GPL v3.0 <https://codeberg.org/CEH-HOTDO
     :caption: API reference
 
     api
+
+.. toctree::
+    :hidden:
+    :maxdepth: 1
+    :caption: Community
+
+    contributing
+    codeofconduct
+
 
 .. Current version: |release|
 

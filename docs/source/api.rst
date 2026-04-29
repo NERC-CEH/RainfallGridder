@@ -5,6 +5,10 @@ API Reference
 
 The 4 key modules
 -----------------
+1. DataPreparer 
+2. QualityController
+3. GaugeVsGriddedCorrelator
+4. CEHGEARSubDailyProducer
 
 .. autofunction:: DataPreparer
 .. autofunction:: QualityController
