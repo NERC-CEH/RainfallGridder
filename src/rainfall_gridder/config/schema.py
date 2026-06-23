@@ -62,7 +62,7 @@ class WorkflowConfig(BaseModel):
         rainfall_data_path = Path(self.rainfall_data.path)
 
         if rainfall_data_path.suffix == ".parquet":
-            return pl.read_parquet(rainfall_data_path, try_parse_dates=True)
+            return pl.read_parquet(rainfall_data_path, try_parse_hive_dates=True)
 
         if rainfall_data_path.suffix == ".csv":
             return pl.read_csv(rainfall_data_path, try_parse_dates=True)
@@ -71,7 +71,7 @@ class WorkflowConfig(BaseModel):
             return pl.scan_parquet(rainfall_data_path, try_parse_hive_dates=True).collect()
         except (ComputeError, InvalidOperationError):
             try:
-                return pl.scan_csv(rainfall_data_path, try_parse_dates=True).collect()
+                return pl.scan_csv(rainfall_data_path, try_parse_hive_dates=True).collect()
             except (ComputeError, InvalidOperationError) as err:
                 raise ValueError(
                     f"Problem with files in rainfall data input path: {path}"
