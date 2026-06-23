@@ -163,13 +163,20 @@ def ceh_gear_subdaily_workflow(
 def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
     first_write = True
     all_days = batch_saving_utils.get_all_days_in_input(
-        corrd_rainfall_metadata, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
+        qcd_rainfall_data, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
     )
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         sub_daily_ceh_gear_batch = []
         for time_step in batch_days:
             if config.verbose:
-                print(f"starting {time_step}")
+                if time_step not in qcd_rainfall_data["date_time_col"]:
+                    print(f"{time_step} not in rainfall data so being skipped.")
+                    continue
+                elif time_step not in one_day_gridded_daily["time"]:
+                    print(f"{time_step} not in gridded rainfall so being skipped.")
+                    continue
+                else:  
+                    print(f"starting {time_step}")
             one_day_gridded_daily = gridded_rainfall.sel(
                 time=time_step.replace(minute=0, second=0, microsecond=0)
             ).where(output_grid)  # subset_to_uk_mask to work with map multiplication
