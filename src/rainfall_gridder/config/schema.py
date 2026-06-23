@@ -3,6 +3,7 @@ from pathlib import Path
 import polars as pl
 import xarray as xr
 from pydantic import BaseModel, Field
+from polars.exceptions import ComputeError, InvalidOperationError
 
 
 class ColumnConfig(BaseModel):
@@ -52,10 +53,40 @@ class WorkflowConfig(BaseModel):
     output_zarr_name: str = "final_gridded_data"
 
     def load_rainfall_data(self) -> pl.DataFrame:
-        return pl.read_parquet(self.rainfall_data.path)
+        """
+            Loads the entire rainfall dataset and will look for it to be either:
+            1. .parquet
+            2. .csv
+            3. a directory containing parquet or csv files
+        """
+        rainfall_data_path = Path(self.rainfall_data.path)
+
+        if rainfall_data_path.suffix == ".parquet":
+            return pl.read_parquet(rainfall_data_path)
+
+        if rainfall_data_path.suffix == ".csv":
+            return pl.read_csv(rainfall_data_path)
+
+        try:
+            return pl.scan_parquet(rainfall_data_path).collect()
+        except (ComputeError, InvalidOperationError):
+            try:
+                return pl.scan_csv(rainfall_data_path).collect()
+            except (ComputeError, InvalidOperationError) as err:
+                raise ValueError(
+                    f"Problem with files in rainfall data input path: {path}"
+                ) from err   
 
     def load_rainfall_metadata(self) -> pl.DataFrame:
-        return pl.read_parquet(self.rainfall_metadata.path)
+        rainfall_metadata_path = Path(self.rainfall_metadata.path)
+
+        if rainfall_metadata_path.suffix == ".parquet":
+            return pl.read_parquet(rainfall_metadata_path)
+
+        if rainfall_metadata_path.suffix == ".csv":
+            return pl.read_csv(rainfall_metadata_path)
+
+        raise ValueError(f"Rainfall metadata path needs to be '.csv' or '.parquet'. Path: {rainfall_metadata_path}")
 
     def load_gridded_rainfall(self) -> xr.Dataset:
         ds = xr.open_dataset(self.gridded_rainfall_data.path)
