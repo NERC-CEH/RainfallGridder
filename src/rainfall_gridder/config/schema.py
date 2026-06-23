@@ -68,7 +68,7 @@ class WorkflowConfig(BaseModel):
             return pl.read_csv(rainfall_data_path, try_parse_dates=True)
 
         try:
-            return pl.scan_parquet(rainfall_data_path, try_parse_dates=True).collect()
+            return pl.scan_parquet(rainfall_data_path, try_parse_hive_dates=True).collect()
         except (ComputeError, InvalidOperationError):
             try:
                 return pl.scan_csv(rainfall_data_path, try_parse_dates=True).collect()
