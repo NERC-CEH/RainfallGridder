@@ -1,6 +1,16 @@
 Changelog
 =========
 
+[0.1.1] - 2026-06-23
+--------------------
+
+Added
+~~~~~
+* Fix bug with how all_days is looped through to generate the zarr
+* Added try_parse_hive_dates to read_ and scan_parquet
+* Added way to read in parquet or csv files as rainfall data path to WorkflowConfig basemodel
+* Added skip for gridding in workflow if time step not in rainfall data input 
+
 [0.1.0] - 2026-04-27
 --------------------
 
