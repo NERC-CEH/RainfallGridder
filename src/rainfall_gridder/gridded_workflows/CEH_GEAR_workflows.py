@@ -163,16 +163,16 @@ def ceh_gear_subdaily_workflow(
 def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
     first_write = True
     all_days = batch_saving_utils.get_all_days_in_input(
-        qcd_rainfall_data, start_date_col=config.data_columns.start_date_col, end_date_col=config.data_columns.end_date_col
+        qcd_rainfall_data, date_col=config.data_columns.date_time_col,
     )
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         sub_daily_ceh_gear_batch = []
         for time_step in batch_days:
             if config.verbose:
-                if time_step not in qcd_rainfall_data["date_time_col"]:
+                if time_step not in qcd_rainfall_data[config.data_columns.date_time_col]:
                     print(f"{time_step} not in rainfall data so being skipped.")
                     continue
-                elif time_step not in one_day_gridded_daily["time"]:
+                elif time_step not in gridded_rainfall["time"]:
                     print(f"{time_step} not in gridded rainfall so being skipped.")
                     continue
                 else:  
@@ -205,6 +205,8 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
         write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
 
 def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
+    if not sub_daily_ceh_gear_batch:
+        return 
     combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
     combined_batch_ds = combined_batch_ds.chunk("auto")
     del sub_daily_ceh_gear_batch
