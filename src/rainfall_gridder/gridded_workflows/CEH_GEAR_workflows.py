@@ -172,11 +172,20 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                 if time_step not in qcd_rainfall_data[config.data_columns.date_time_col]:
                     print(f"{time_step} not in rainfall data so being skipped.")
                     continue
-                elif time_step not in gridded_rainfall["time"]:
-                    print(f"{time_step} not in gridded rainfall so being skipped.")
-                    continue
-                else:  
-                    print(f"starting {time_step}")
+                else: 
+                    time_step_exists = False
+                    try:
+                        # Try to use the datetime colum to select a single time step value
+                        gridded_rainfall.sel(time=time_step)
+                        time_step_exists = True
+                    except KeyError:
+                        time_step_exists = False
+                    if time_step_exists:
+                        print(f"starting {time_step}")
+                    else:
+                        print(f"{time_step} not in gridded rainfall so being skipped.")
+                        continue
+                    
             one_day_gridded_daily = gridded_rainfall.sel(
                 time=time_step.replace(minute=0, second=0, microsecond=0)
             ).where(output_grid)  # subset_to_uk_mask to work with map multiplication
