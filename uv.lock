@@ -2762,7 +2762,7 @@ requires-dist = [
     { name = "pyarrow" },
     { name = "pydantic" },
     { name = "pyproj" },
-    { name = "rainfallqc" },
+    { name = "rainfallqc", specifier = ">=1.0.0" },
     { name = "rich" },
     { name = "s3fs" },
     { name = "scipy", specifier = ">=1.17.1" },
@@ -2810,7 +2810,7 @@ typecheck = [{ name = "ty" }]
 
 [[package]]
 name = "rainfallqc"
-version = "0.5.1"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bottleneck" },
@@ -2826,9 +2826,9 @@ dependencies = [
     { name = "scipy" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/5b/e067207be0244a30697d8bdf91afab086aa6cfb908d10ae720397ee77e03/rainfallqc-0.5.1.tar.gz", hash = "sha256:ae103a558a2fbd9029dcdc81265f5a87a02fb502c9a5a6fe20e586d6ef706f93", size = 1309368, upload-time = "2026-04-27T10:08:04.289Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/c6/6356ef576ea8ca3a8e71b0b4a30929db28925701756a5ff0c0e979473daf/rainfallqc-1.0.0.tar.gz", hash = "sha256:d3e948c705338a526dfab0ab90aaecaca224e68c873aae8f9b10d502901e1269", size = 1309546, upload-time = "2026-06-19T14:06:25.034Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/6a/08a05a53a28e65218569ca6afb44a9bb1f16318a2340bc18771e4c6a003e/rainfallqc-0.5.1-py3-none-any.whl", hash = "sha256:c7ef6d89ecba50247bca1ad46dc17801d82a8a8e2054ed50af27faf6fb748811", size = 1344823, upload-time = "2026-04-27T10:08:02.402Z" },
+    { url = "https://files.pythonhosted.org/packages/36/60/ab389525acaa030acf2ec5877f623d6a8930258005e181615e946bd2c24d/rainfallqc-1.0.0-py3-none-any.whl", hash = "sha256:af5cb3300b29ecfc36120888af81826656240a33c946c192ec3359b69ed4294b", size = 1344916, upload-time = "2026-06-19T14:06:23.447Z" },
 ]
 
 [[package]]
