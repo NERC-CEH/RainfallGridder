@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rainfall-gridder"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python package for interpolating rainfall data onto a regular grid."
 readme = "README.rst"
 authors = [
@@ -34,7 +34,7 @@ dependencies = [
     "pyarrow",
     "pydantic",
     "pyproj",
-    "rainfallqc",
+    "rainfallqc>=1.0.0",
     "scipy>=1.17.1",
     "numpy>=2.4.3",
     "scipy-stubs~=1.17.1",

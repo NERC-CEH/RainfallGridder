@@ -62,9 +62,9 @@ def crs_to_crs(
     df: dataframe
         Data with new crs
     """
-    if not crs_in.startswith("EPSG"):
+    if not str(crs_in).startswith("EPSG"):
         crs_in = "EPSG:" + str(crs_in)
-    if not crs_out.startswith("EPSG"):
+    if not str(crs_out).startswith("EPSG"):
         crs_out = "EPSG:" + str(crs_out)
     transformer = Transformer.from_crs(crs_in, crs_out, always_xy=True)
     transformed_eastings, transformed_northings = transformer.transform(

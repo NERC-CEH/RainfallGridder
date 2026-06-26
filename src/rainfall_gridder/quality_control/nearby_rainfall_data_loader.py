@@ -109,7 +109,7 @@ class NearbyRainfallDataLoader:
 
     def _load_nearby_rainfall_data_from_parquet_files(self) -> pl.DataFrame:
         nearby_rainfall_data = (
-            pl.scan_parquet(self.path_to_rainfall_files)
+            pl.scan_parquet(self.path_to_rainfall_files, try_scan_hive_dates=True)
             .filter(pl.col(self.station_id_col).cast(pl.String).is_in(self.stations_to_load))
             .collect()
         )

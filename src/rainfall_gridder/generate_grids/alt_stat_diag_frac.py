@@ -101,7 +101,7 @@ def get_stat_disag_fraction_15min_grid(
     Vectorised 15-min version of get_stat_disag_fraction_15min.
     Operates on the entire 2D grid at once.
     """
-    assert dt.minute % 15 == 0, f"Expected 15-min aligned timestamp, got minute={dt.minute}"
+    assert dt.minute % 15 == expected_minute_alignment, f"Expected 15-min aligned timestamp, got minute={dt.minute}"
 
     values = daily_total_grid.values  # (y, x)
 
