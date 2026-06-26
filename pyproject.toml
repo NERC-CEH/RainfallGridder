@@ -34,7 +34,7 @@ dependencies = [
     "pyarrow",
     "pydantic",
     "pyproj",
-    "rainfallqc",
+    "rainfallqc>=1.0.0",
     "scipy>=1.17.1",
     "numpy>=2.4.3",
     "scipy-stubs~=1.17.1",
