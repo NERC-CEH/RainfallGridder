@@ -210,8 +210,12 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                 output_rainfall_name="rainfall"
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
-
-        write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
+        
+        if first_write:
+            write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
+            first_write = False
+        else:
+            write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
 
 def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
     if not sub_daily_ceh_gear_batch:
@@ -222,7 +226,6 @@ def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
 
     if first_write:
         combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
-        first_write = False
         if config.verbose:
             print("First batch written.")
     else:
