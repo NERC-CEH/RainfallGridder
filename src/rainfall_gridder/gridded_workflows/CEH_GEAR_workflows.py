@@ -161,12 +161,13 @@ def ceh_gear_subdaily_workflow(
 
 
 def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
-    first_write = True
     all_days = batch_saving_utils.get_all_days_in_input(
         qcd_rainfall_data, date_col=config.data_columns.date_time_col,
     )
+    any_time_steps_processed = False
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         sub_daily_ceh_gear_batch = []
+        valid_time_steps_processed = 0
         for time_step in batch_days:
             if config.verbose:
                 if time_step not in qcd_rainfall_data[config.data_columns.date_time_col]:
@@ -182,6 +183,12 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                         time_step_exists = False
                     if time_step_exists:
                         print(f"starting {time_step}")
+                        if valid_time_steps_processed == 0 and not any_time_steps_processed:
+                            first_write = True
+                            any_time_steps_processed = True
+                        else:
+                            first_write = False
+                        valid_time_steps_processed += 1
                     else:
                         print(f"{time_step} not in gridded rainfall so being skipped.")
                         continue
@@ -210,12 +217,9 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                 output_rainfall_name="rainfall"
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
-        
-        if first_write:
+        if valid_time_steps_processed > 0:
             write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
-            first_write = False
-        else:
-            write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
+
 
 def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
     if not sub_daily_ceh_gear_batch:
