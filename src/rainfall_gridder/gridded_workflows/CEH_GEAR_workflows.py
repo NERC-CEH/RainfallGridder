@@ -156,8 +156,7 @@ def ceh_gear_subdaily_workflow(
 
     produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid)
 
-    print(f"Output saved to: {config.output_dir / config.output_zarr_name}")
-    print("done!")
+    print(f"Done! Output saved to: {config.output_dir / config.output_zarr_name}")
 
 
 def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
@@ -217,14 +216,16 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                 output_rainfall_name="rainfall"
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
+
         if valid_time_steps_processed > 0:
+            print(first_write, valid_time_steps_processed)
             write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
 
 
 def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
     if not sub_daily_ceh_gear_batch:
-        return 
-    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
+        return
+    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim="time", join='outer')
     combined_batch_ds = combined_batch_ds.chunk("auto")
     del sub_daily_ceh_gear_batch
 
