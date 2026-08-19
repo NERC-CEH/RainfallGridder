@@ -72,10 +72,10 @@ docs = [
 ]
 
 [project.urls]
-bugs = "https://codeberg.org/thomasjkeel/RainfallGridder/issues"
-changelog = "https://codeberg.org/thomasjkeel/RainfallGridder/releases"
-documentation = "https://thomasjkeel.codeberg.io/RainfallGridder/"
-homepage = "https://codeberg.org/thomasjkeel/RainfallGridder"
+bugs = "https://github.com/NERC-CEH/RainfallGridder/issues"
+changelog = "https://github.com/NERC-CEH/RainfallGridder/releases"
+documentation = "https://nerc-ceh.github.io/RainfallGridder"
+homepage = "https://nerc-ceh.github.io/RainfallGridder"
 
 [project.scripts]
 rainfall_gridder = "RainfallGridder.cli:app"

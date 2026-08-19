@@ -23,7 +23,7 @@ Features
 * Will help you quality control and grid your 15 minute or hourly rain gauge data
 * Provides a 4-step procedure for:
         1. Preparing your rain gauge data for gridding (combining duplicates by location)
-        2. Quality controlling rain gauge data with `RainfallQC <https://codeberg.org/CEH-HOTDOG/RainfallQC>`_ and the `IntenseQC rulebase <https://www.sciencedirect.com/science/article/pii/S1364815221002127#tbl2>`_
+        2. Quality controlling rain gauge data with `RainfallQC <https://github.com/NERC-CEH/RainfallQC>`_ and the `IntenseQC rulebase <https://www.sciencedirect.com/science/article/pii/S1364815221002127#tbl2>`_
         3. Correlating values daily sums of rain gauges to nearest daily gridded rainfall
         4. Generating grids using Nearest-neighbour interpolation
 * Built for the CEH-GEAR 15 min rainfall product

@@ -33,7 +33,7 @@ Install options
 
         .. code-block:: bash
 
-            git clone https://codeberg.org/CEH-HOTDOG/RainfallGridder
+            git clone https://github.com/NERC-CEH/RainfallGridder
             cd RainfallGridder
             uv sync
 
