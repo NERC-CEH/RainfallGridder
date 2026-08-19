@@ -71,7 +71,7 @@ class WorkflowConfig(BaseModel):
             return pl.scan_parquet(rainfall_data_path, try_parse_hive_dates=True).collect()
         except (ComputeError, InvalidOperationError):
             try:
-                return pl.scan_csv(rainfall_data_path).collect()
+                return pl.scan_csv(rainfall_data_path, try_parse_dates=True).collect()
             except (ComputeError, InvalidOperationError) as err:
                 raise ValueError(f"Problem with files in rainfall data input path: {path}") from err
 
