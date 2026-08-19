@@ -11,8 +11,14 @@ RainfallGridder
 
 Python package for interpolating rainfall data onto a regular grid.
 
+Documentation and License
+=========================
+* RainfallGridder is developed and maintained by UKCEH.
+* Free software: GNU General Public License v3
+* Documentation: https://nerc-ceh.github.io/RainfallGridder/
+
 Features
---------
+========
 
 * Will help you quality control and grid your 15 minute or hourly rain gauge data
 * Provides a 4-step procedure for:
@@ -23,24 +29,16 @@ Features
 * Built for the CEH-GEAR 15 min rainfall product
 * Free software: GPL v3 License
 
-Documentation
--------------
 
-Incoming...
-
-.. Documentation is built with [Sphinx](https://www.sphinx-doc.org/en/master/index.html) and deployed to Codeberg Pages.
-
-.. [//]: # (* **Live site:** https://CEH-HOTDOG.codeberg.io/RainfallGridder/)
-.. * **Preview locally:** `just docs-serve` (serves at http://localhost:8000)
-.. * **Build:** `just docs-build`
-
-.. API documentation is auto-generated from docstrings using [mkdocstrings](https://mkdocstrings.github.io/).
-
-.. Docs deploy automatically on push to `main` via Codeberg Actions. To enable this, go to your repo's Settings > Pages and set the source to **Codeberg Actions**.
+.. How to cite this package
+.. ========================
+.. To cite a specific version of RainfallQC, please see `Zenodo <https://zenodo.org/records/17457184>`_ DOI. 
+.. For v0.3.1: https://doi.org/10.5281/zenodo.17457013
 
 
 Credits
--------
+=======
+* Please email tomkee@ceh.ac.uk if you have any questions.
 
 RainfallGridder was created in 2026 by Tom Keel as part of the `Floods & Droughts Research Infrastructure (FDRI) <https://fdri.org.uk/>`_ project led by the `UK Centre for Ecology & Hydrology (UKCEH) <https://www.ceh.ac.uk/>`_
 
