@@ -89,7 +89,7 @@ The original methodology for CEH-GEAR 1h forms the outline of the pipeline this 
 
    .. container:: image-item
 
-      .. figure:: _static/ukceh_logo.png
+      .. figure:: _static/ukceh_logo_light.png
          :alt: UKCEH
          :height: 100px
          :target: https://www.ceh.ac.uk
