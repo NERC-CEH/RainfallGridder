@@ -1,6 +1,8 @@
 from pathlib import Path
+import numpy as np
 import polars as pl
 import xarray as xr
+import rainfall_gridder.prepare_data.data_formatting as data_formatting
 from rainfall_gridder.config.schema import ColumnConfig, WorkflowConfig
 from rainfall_gridder.prepare_data.DataPreparer import DataPreparer
 from rainfall_gridder.quality_control.QualityController import QualityController
@@ -15,6 +17,7 @@ def ceh_gear_subdaily_workflow(
     gridded_rainfall_path: str | Path | xr.Dataset,
     default_ceh_gear_kwargs: dict,
     gridded_rainfall_rename_dict: dict | None = None,
+    allow_imperfect_overlap: bool = False,
     data_columns: dict | ColumnConfig | None = None,
     **overrides,
 ) -> None:
@@ -33,6 +36,8 @@ def ceh_gear_subdaily_workflow(
         Default arguments for CEH-GEAR workflow (see config/configs.py)
     gridded_rainfall_rename_dict:
         Columns to rename
+    allow_imperfect_overlap:
+        Whether to allow for an imperfect overlap between gridded and gauges (default False)
     data_columns:
         Names of the columns in rainfall data and metadata (will default to standard names, see config/schema.py)
     overrides:
@@ -66,6 +71,14 @@ def ceh_gear_subdaily_workflow(
     rainfall_data = config.load_rainfall_data()
     rainfall_metadata = config.load_rainfall_metadata()
     gridded_rainfall = config.load_gridded_rainfall()
+
+    # Check overlap between rain gauge data and gridded rainfall data
+    data_formatting.check_time_overlap_between_gridded_and_gauges(
+        rainfall_data=rainfall_data,
+        rainfall_date_time_col=config.data_columns.date_time_col,
+        gridded_rainfall=gridded_rainfall,
+        allow_imperfect_overlap=allow_imperfect_overlap,
+    )
 
     # Start workflow
     # 1. Prepare data
@@ -150,9 +163,7 @@ def ceh_gear_subdaily_workflow(
     )
 
     # TODO: move higher up as I think all parts will use this
-    gridded_rainfall = xarray_utils.replace_daily_time_step_hour_with_zero(
-        gridded_rainfall, time_col="time"
-    )
+    gridded_rainfall = xarray_utils.replace_daily_time_step_hour_with_zero(gridded_rainfall, time_col="time")
 
     produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid)
 
@@ -161,7 +172,8 @@ def ceh_gear_subdaily_workflow(
 
 def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
     all_days = batch_saving_utils.get_all_days_in_input(
-        qcd_rainfall_data, date_col=config.data_columns.date_time_col,
+        qcd_rainfall_data,
+        date_col=config.data_columns.date_time_col,
     )
     any_time_steps_processed = False
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
@@ -172,7 +184,7 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                 if time_step not in qcd_rainfall_data[config.data_columns.date_time_col]:
                     print(f"{time_step} not in rainfall data so being skipped.")
                     continue
-                else: 
+                else:
                     time_step_exists = False
                     try:
                         # Try to use the datetime colum to select a single time step value
@@ -191,7 +203,7 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                     else:
                         print(f"{time_step} not in gridded rainfall so being skipped.")
                         continue
-                    
+
             one_day_gridded_daily = gridded_rainfall.sel(
                 time=time_step.replace(minute=0, second=0, microsecond=0)
             ).where(output_grid)  # subset_to_uk_mask to work with map multiplication
@@ -213,7 +225,7 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                 land_mask=output_grid,
                 one_day_gridded_daily=one_day_gridded_daily,
                 gridded_rainfall_col=config.gridded_rainfall_col,
-                output_rainfall_name="rainfall"
+                output_rainfall_name="rainfall",
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
 
@@ -225,16 +237,20 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
 def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
     if not sub_daily_ceh_gear_batch:
         return
-    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim="time", join='outer')
+    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim="time", join="outer")
     combined_batch_ds = combined_batch_ds.chunk("auto")
     del sub_daily_ceh_gear_batch
 
     if first_write:
-        combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
+        combined_batch_ds.to_zarr(
+            config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2
+        )
         if config.verbose:
             print("First batch written.")
     else:
-        combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2)
+        combined_batch_ds.to_zarr(
+            config.output_dir / config.output_zarr_name, align_chunks=True, append_dim="time", zarr_format=2
+        )
         if config.verbose:
             print("Next batch written.")
 

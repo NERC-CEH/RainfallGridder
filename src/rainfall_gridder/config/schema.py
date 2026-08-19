@@ -26,7 +26,7 @@ class RainGaugeDataConfig(BaseModel):
 
 
 class GriddedRainfallConfig(BaseModel):
-    path: Path
+    path: Path | list[Path]
     rename: dict[str, str] = Field(default_factory=dict)
 
 
@@ -54,10 +54,10 @@ class WorkflowConfig(BaseModel):
 
     def load_rainfall_data(self) -> pl.DataFrame:
         """
-            Loads the entire rainfall dataset and will look for it to be either:
-            1. .parquet
-            2. .csv
-            3. a directory containing parquet or csv files
+        Loads the entire rainfall dataset and will look for it to be either:
+        1. .parquet
+        2. .csv
+        3. a directory containing parquet or csv files
         """
         rainfall_data_path = Path(self.rainfall_data.path)
 
@@ -71,11 +71,9 @@ class WorkflowConfig(BaseModel):
             return pl.scan_parquet(rainfall_data_path, try_parse_hive_dates=True).collect()
         except (ComputeError, InvalidOperationError):
             try:
-                return pl.scan_csv(rainfall_data_path, try_parse_hive_dates=True).collect()
+                return pl.scan_csv(rainfall_data_path, try_parse_dates=True).collect()
             except (ComputeError, InvalidOperationError) as err:
-                raise ValueError(
-                    f"Problem with files in rainfall data input path: {path}"
-                ) from err   
+                raise ValueError(f"Problem with files in rainfall data input path: {path}") from err
 
     def load_rainfall_metadata(self) -> pl.DataFrame:
         rainfall_metadata_path = Path(self.rainfall_metadata.path)
@@ -89,7 +87,10 @@ class WorkflowConfig(BaseModel):
         raise ValueError(f"Rainfall metadata path needs to be '.csv' or '.parquet'. Path: {rainfall_metadata_path}")
 
     def load_gridded_rainfall(self) -> xr.Dataset:
-        ds = xr.open_dataset(self.gridded_rainfall_data.path)
+        if isinstance(self.gridded_rainfall_data.path, list):
+            ds = xr.open_mfdataset(self.gridded_rainfall_data.path)
+        else:
+            ds = xr.open_dataset(self.gridded_rainfall_data.path)
         if self.gridded_rainfall_data.rename:
             ds = ds.rename(self.gridded_rainfall_data.rename)
         assert self.gridded_rainfall_col in ds.data_vars, f"{self.gridded_rainfall_col} not in gridded_rainfall_data"
