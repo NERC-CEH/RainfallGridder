@@ -1,5 +1,6 @@
 import numpy as np
 import polars as pl
+import xarray as xr
 
 
 def set_negative_precip_values_to_none(precip_data: pl.DataFrame, precip_col: str) -> pl.DataFrame:
@@ -104,9 +105,9 @@ def check_time_overlap_between_gridded_and_gauges(
 
     if diff_length_data == 0:
         pass
-    elif diff_length_data > 0:
+    elif diff_length_data < 0:
         print(
-            f"Warning: more timesteps in overlap with gridded data (len: {gridded_rainfall_overlap['time'].size}) than in rain gauge data {len(rainfall_data[rainfall_date_time_col])}"
+            f"Warning: {diff_length_data} more timesteps in overlap with gridded data than in rain gauge data"
         )
     # elif at least 50% data missing from
     elif diff_length_data >= (len(rainfall_data[rainfall_date_time_col]) / 2):
@@ -115,7 +116,7 @@ def check_time_overlap_between_gridded_and_gauges(
         )
     elif allow_imperfect_overlap:
         print(
-            f"Imperfect overlap between rain gauge data (runs from {rainfall_data_time_min} to {rainfall_data_time_max}) and gridded rainfall (run from {gridded_rainfall_time_min} to {gridded_rainfall_time_max})."
+            f"Warning: Imperfect overlap between rain gauge data (runs from {rainfall_data_time_min} to {rainfall_data_time_max}) and gridded rainfall (run from {gridded_rainfall_time_min} to {gridded_rainfall_time_max})."
         )
     else:
         raise ValueError(
