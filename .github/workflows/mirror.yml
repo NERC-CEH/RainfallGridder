@@ -27,6 +27,6 @@ jobs:
         fetch-depth: 0
     - uses: yesolutions/mirror-action@master
       with:
-        REMOTE: 'https://codeberg.org/CEH-HOTDOG/RainfallGridder.git'
+        REMOTE: 'https://codeberg.org/CEH-HOTDOG/RainfallGridder-mirror.git'
         GIT_USERNAME: Thomasjkeel
         GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
