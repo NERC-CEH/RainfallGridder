@@ -23,7 +23,6 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_contributors",
     "sphinx_iconify",
-    
     # Optional: uncomment as needed
     # "sphinx_tabs.tabs",
     # "sphinxcontrib.mermaid",
@@ -80,7 +79,6 @@ html_theme_options = {
             ],
         },
         {"title": "API reference", "url": "api"},
-
     ],
 }
 

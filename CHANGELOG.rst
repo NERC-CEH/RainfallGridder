@@ -1,13 +1,22 @@
 Changelog
 =========
 
+[0.1.3] - 2026-08-19
+--------------------
+
+Added
+~~~~~
+* Add check_time_overlap_between_gridded_and_gauges function to data_formatting
+* Change schema so GriddedRainfallConfig checks for overlap
+* Also allows gridded data to be multiple file paths
+
+
 [0.1.2] - 2026-06-30
 --------------------
 
 Added
 ~~~~~
 * Fix logic for write zarr so that it works properly
-
 
 
 [0.1.1] - 2026-06-26
