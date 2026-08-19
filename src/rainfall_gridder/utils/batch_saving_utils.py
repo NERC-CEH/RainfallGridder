@@ -4,9 +4,7 @@ import itertools
 import polars as pl
 
 
-def get_all_days_in_input(
-    data: pl.DataFrame, date_col: str, every_n_days: int = 1
-) -> list:
+def get_all_days_in_input(data: pl.DataFrame, date_col: str, every_n_days: int = 1) -> list:
     current = data[date_col].min()
     end_date = data[date_col].max()
     all_days = []
