@@ -1,0 +1,52 @@
+name: Run Python Tests
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  build:
+    name: continuous-integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.11", "3.12", "3.13" ]
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run tests (Python ${{ matrix.python-version }})
+        run: uv run --python=${{ matrix.python-version }} coverage run -m pytest
+
+      - name: Lint with ruff
+        uses: astral-sh/ruff-action@v3
+        with:
+          src: "./src"
+      - name: Check format with ruff
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: "format --check"
