@@ -47,7 +47,7 @@
 
     `Docs <installation.html>`_
     `Usage <usage.html>`_
-    `Codeberg <https://codeberg.org/CEH-HOTDOG/RainfallGridder>`_
+    `GitHub <https://github.com/NERC-CEH/RainfallGridder/>`_
 
 .. grid:: 1 1 2 3
     :class-row: surface
@@ -60,12 +60,12 @@
       A collection of tutorials for setting up and using RainfallGridder. 
 
     .. grid-item-card:: :octicon:`alert` Issues
-      :link: https://codeberg.org/CEH-HOTDOG/RainfallGridder/issues
+      :link: https://github.com/NERC-CEH/RainfallGridder/issues
 
       Use this link you need to report any bugs or request new features.
 
     .. grid-item-card:: :octicon:`people` More FDRI projects
-      :link: https://codeberg.org/CEH-HOTDOG
+      :link: https://github.com/NERC-CEH/
 
       Learn more about the UK's Floods & Droughts Research Infrastructure Project.
 
@@ -80,7 +80,7 @@ RainfallGridder is built on top of `Polars <https://docs.pola.rs/>`_, which hand
 
 The original methodology for CEH-GEAR 1h forms the outline of the pipeline this package provides. That is a 4-step procedure for:
         1. Preparing your rain gauge data for gridding (combining duplicates by location).
-        2. Quality controlling rain gauge data with `RainfallQC <https://codeberg.org/CEH-HOTDOG/RainfallQC>`_ and the `IntenseQC rulebase <https://www.sciencedirect.com/science/article/pii/S1364815221002127#tbl2>`_.
+        2. Quality controlling rain gauge data with `RainfallQC <https://github.com/NERC-CEH/RainfallQC>`_ and the `IntenseQC rulebase <https://www.sciencedirect.com/science/article/pii/S1364815221002127#tbl2>`_.
         3. Correlating values daily sums of rain gauges to nearest daily gridded rainfall.
         4. Generating grids using nearest-neighbour interpolation.
 
@@ -110,7 +110,7 @@ Developed at `UKCEH <https://www.ceh.ac.uk/>`_, welcoming community engagement a
 License
 =======
 
-This project is licensed under the `GNU GPL v3.0 <https://codeberg.org/CEH-HOTDOG/RainfallGridder/raw/branch/main/LICENSE>`_.
+This project is licensed under the `GNU GPL v3.0 <https://github.com/NERC-CEH/RainfallGridder/raw/branch/main/LICENSE>`_.
 
 
 .. toctree::

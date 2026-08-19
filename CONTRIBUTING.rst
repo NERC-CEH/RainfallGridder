@@ -11,7 +11,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://codeberg.org/thomasjkeel/RainfallGridder/issues.
+Report bugs at https://github.com/NERC-CEH/RainfallGridder/issues.
 
 If you are reporting a bug, please include:
 
@@ -22,11 +22,11 @@ If you are reporting a bug, please include:
 Fix Bugs
 ~~~~~~~~
 
-Look through the Codeberg issues for bugs. Anything tagged with "bug" and "help wanted" is open to whoever wants to implement it.
+Look through the GitHub issues for bugs. Anything tagged with "bug" and "help wanted" is open to whoever wants to implement it.
 
 Implement Features
 
-Look through the Codeberg issues for features. Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it.
+Look through the GitHub issues for features. Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it.
 
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@ This starts a local server at http://localhost:8000 with live reload. Edit files
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://codeberg.org/thomasjkeel/RainfallGridder/issues.
+The best way to send feedback is to file an issue at https://github.com/NERC-CEH/RainfallGridder/issues.
 
 If you are proposing a feature:
 
@@ -57,11 +57,11 @@ Get Started!
 
 Ready to contribute? Here's how to set up `rainfall_gridder` for local development.
 
-1. Fork the `RainfallGridder` repo on Codeberg.
+1. Fork the `RainfallGridder` repo on GitHub.
 2. Clone your fork locally:
 
    ```sh
-   git clone git@codeberg.org:your_name_here/RainfallGridder.git
+    git clone git@github.com:your_name_here/RainfallGridder.git
    ```
 
 3. Install your local copy with uv:
@@ -91,7 +91,7 @@ Ready to contribute? Here's how to set up `rainfall_gridder` for local developme
    just test
    ```
 
-6. Commit your changes and push your branch to Codeberg:
+6. Commit your changes and push your branch to GitHub:
 
    ```sh
    git add .
@@ -99,7 +99,7 @@ Ready to contribute? Here's how to set up `rainfall_gridder` for local developme
    git push origin name-of-your-bugfix-or-feature
    ```
 
-7. Submit a pull request through the Codeberg website.
+7. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
@@ -108,7 +108,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
 2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.rst.
-3. The pull request should work for Python 3.12, 3.13, and 3.14. Tests run in Codeberg Actions on every pull request to the main branch, make sure that the tests pass for all supported Python versions.
+3. The pull request should work for Python 3.12, 3.13, and 3.14. Tests run in GitHub Actions on every pull request to the main branch, make sure that the tests pass for all supported Python versions.
 
 Tips
 ----
@@ -136,9 +136,9 @@ Releasing a New Version
    ```bash
    just release
    ```
-   This creates an annotated `v*` tag, pushes it to Codeberg, and creates a
-   Codeberg Release with the changelog contents as release notes. The tag
-   push triggers `.forgejo/workflows/publish.yml`, which builds the package,
+   This creates an annotated `v*` tag, pushes it to GitHub, and creates a
+   GitHub Release with the changelog contents as release notes. The tag
+   push triggers `.github/workflows/publish.yml`, which builds the package,
    generates SLSA provenance attestations, and publishes to PyPI via
    trusted publishing.
 
