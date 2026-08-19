@@ -74,7 +74,7 @@ def check_time_overlap_between_gridded_and_gauges(
     Parameters
     ----------
     rainfall_data:
-        Rainfall gauge data
+        (daily) Rainfall gauge data
     date_time_col:
         Name of date time col in rainfall data
     gridded_rainfall:
@@ -101,24 +101,39 @@ def check_time_overlap_between_gridded_and_gauges(
             f"No overlap between rain gauge data (runs from {rainfall_data_time_min} to {rainfall_data_time_max}) and gridded rainfall (run from {gridded_rainfall_time_min} to {gridded_rainfall_time_max})."
         )
 
-    diff_length_data = len(rainfall_data[rainfall_date_time_col]) - gridded_rainfall_overlap["time"].size
+    if allow_imperfect_overlap:
+        overlap_start = max(rainfall_data_time_min, gridded_rainfall_time_min)
+        overlap_end = min(rainfall_data_time_max, gridded_rainfall_time_max)
 
-    if diff_length_data == 0:
-        pass
-    elif diff_length_data < 0:
-        print(
-            f"Warning: {diff_length_data} more timesteps in overlap with gridded data than in rain gauge data"
-        )
-    # elif at least 50% data missing from
-    elif diff_length_data >= (len(rainfall_data[rainfall_date_time_col]) / 2):
-        raise ValueError(
-            f"Not enough overlap between rain gauge data (runs from {rainfall_data_time_min} to {rainfall_data_time_max}) and gridded rainfall (run from {gridded_rainfall_time_min} to {gridded_rainfall_time_max})."
-        )
-    elif allow_imperfect_overlap:
-        print(
-            f"Warning: Imperfect overlap between rain gauge data (runs from {rainfall_data_time_min} to {rainfall_data_time_max}) and gridded rainfall (run from {gridded_rainfall_time_min} to {gridded_rainfall_time_max})."
-        )
+        if overlap_start > overlap_end:
+            raise ValueError(
+                "No overlap between gridded rainfall data and rain gauge data. "
+                f"Rainfall data: {rainfall_data_time_min} to {rainfall_data_time_max}; "
+                f"gridded data: {gridded_rainfall_time_min} to {gridded_rainfall_time_max}."
+            )
+
+        overlap_days = (overlap_end - overlap_start).days + 1 # plus 1d because inclusive
+        rainfall_total_days = (rainfall_data_time_max - rainfall_data_time_min).days + 1 # plus 1d because inclusive
+        if overlap_days != rainfall_total_days:
+            # Check for at least 50% overlap in days
+            if overlap_days <= (rainfall_total_days / 2):
+                raise ValueError(
+                    "Not enough overlap between gridded rainfall data and rain gauge data. "
+                    f"Rainfall data: {rainfall_data_time_min} to {rainfall_data_time_max}; "
+                    f"gridded data: {gridded_rainfall_time_min} to {gridded_rainfall_time_max}."
+                )
+            else:
+                print(
+                    f"Warning: imperfect overlap (overlap {overlap_days}/{rainfall_total_days} days) between gridded rainfall data and rain gauge data. "
+                    f"Rainfall data: {rainfall_data_time_min} to {rainfall_data_time_max}; "
+                    f"gridded data: {gridded_rainfall_time_min} to {gridded_rainfall_time_max}."
+                )
+
     else:
-        raise ValueError(
-            f"Imperfect overlap between rain gauge data (runs from {rainfall_data_time_min} to {rainfall_data_time_max}) and gridded rainfall (run from {gridded_rainfall_time_min} to {gridded_rainfall_time_max})."
-        )
+        if gridded_rainfall_time_min > rainfall_data_time_min or gridded_rainfall_time_max < rainfall_data_time_max:
+            raise ValueError(
+                "No or imperfect overlap between gridded rainfall data and rain gauge data. "
+                f"Rain gauge data: {rainfall_data_time_min} to {rainfall_data_time_max}; "
+                f"gridded data: {gridded_rainfall_time_min} to {gridded_rainfall_time_max}."
+                "You can allow imperfect overlap by setting `allow_imperfect_overlap=True`"
+            )
