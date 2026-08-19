@@ -156,17 +156,17 @@ def ceh_gear_subdaily_workflow(
 
     produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid)
 
-    print(f"Output saved to: {config.output_dir / config.output_zarr_name}")
-    print("done!")
+    print(f"Done! Output saved to: {config.output_dir / config.output_zarr_name}")
 
 
 def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corrd_rainfall_metadata, output_grid):
-    first_write = True
     all_days = batch_saving_utils.get_all_days_in_input(
         qcd_rainfall_data, date_col=config.data_columns.date_time_col,
     )
+    any_time_steps_processed = False
     for batch_days in batch_saving_utils.batch_days(all_days, config.batch_size):
         sub_daily_ceh_gear_batch = []
+        valid_time_steps_processed = 0
         for time_step in batch_days:
             if config.verbose:
                 if time_step not in qcd_rainfall_data[config.data_columns.date_time_col]:
@@ -182,6 +182,12 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
                         time_step_exists = False
                     if time_step_exists:
                         print(f"starting {time_step}")
+                        if valid_time_steps_processed == 0 and not any_time_steps_processed:
+                            first_write = True
+                            any_time_steps_processed = True
+                        else:
+                            first_write = False
+                        valid_time_steps_processed += 1
                     else:
                         print(f"{time_step} not in gridded rainfall so being skipped.")
                         continue
@@ -211,18 +217,20 @@ def produce_sub_daily_ceh_gear(config, gridded_rainfall, qcd_rainfall_data, corr
             )
             sub_daily_ceh_gear_batch.append(ceh_gear_sub_daily_one_day)
 
-        write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
+        if valid_time_steps_processed > 0:
+            print(first_write, valid_time_steps_processed)
+            write_to_zarr(config, first_write, sub_daily_ceh_gear_batch)
+
 
 def write_to_zarr(config, first_write, sub_daily_ceh_gear_batch):
     if not sub_daily_ceh_gear_batch:
-        return 
-    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim=config.data_columns.date_time_col, join='outer')
+        return
+    combined_batch_ds = xr.concat(sub_daily_ceh_gear_batch, dim="time", join='outer')
     combined_batch_ds = combined_batch_ds.chunk("auto")
     del sub_daily_ceh_gear_batch
 
     if first_write:
         combined_batch_ds.to_zarr(config.output_dir / config.output_zarr_name, align_chunks=True, mode="w", zarr_format=2)
-        first_write = False
         if config.verbose:
             print("First batch written.")
     else:

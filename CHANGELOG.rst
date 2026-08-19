@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.1.2] - 2026-06-30
+--------------------
+
+Added
+~~~~~
+* Fix logic for write zarr so that it works properly
+
+
+
 [0.1.1] - 2026-06-26
 --------------------
 
