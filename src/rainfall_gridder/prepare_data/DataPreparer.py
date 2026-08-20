@@ -106,9 +106,6 @@ class DataPreparer:
                 f"Expecting data variable: '{data_var}' in gridded rainfall data. "
                 "Please add this variable, or rename its equivalent."
             )
-        gridded_rainfall_data = xarray_utils.replace_daily_time_step_hour_with_zero(
-            gridded_rainfall_data, time_col="time"
-        )
         gridded_rainfall_data = xarray_utils.subset_gridded_data_to_metadata_bounds(
             gridded_rainfall_data, self.rainfall_metadata, self.easting_col, self.northing_col
         )
@@ -188,6 +185,12 @@ class DataPreparer:
                     easting=metadata_one_group[self.easting_col][0],
                     northing=metadata_one_group[self.northing_col][0],
                 )
+
+                nearest_daily_gridded_cell = xarray_utils.replace_daily_time_step_hour_with_zero(
+                    nearest_daily_gridded_cell, time_col="time"
+                )
+                nearest_daily_gridded_cell.load()
+
                 combined_data = gauge_combiner.loop_through_and_merge_data(
                     nearest_daily_gridded_cell,
                     date_time_col=self.date_time_col,

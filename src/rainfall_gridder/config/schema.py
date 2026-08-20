@@ -28,6 +28,8 @@ class RainGaugeDataConfig(BaseModel):
 class GriddedRainfallConfig(BaseModel):
     path: Path | list[Path]
     rename: dict[str, str] = Field(default_factory=dict)
+    from_object_store: bool = False
+    object_store_config: dict[str, str] = Field(default_factory=dict)
 
 
 class WorkflowConfig(BaseModel):
@@ -87,10 +89,19 @@ class WorkflowConfig(BaseModel):
         raise ValueError(f"Rainfall metadata path needs to be '.csv' or '.parquet'. Path: {rainfall_metadata_path}")
 
     def load_gridded_rainfall(self) -> xr.Dataset:
-        if isinstance(self.gridded_rainfall_data.path, list):
-            ds = xr.open_mfdataset(self.gridded_rainfall_data.path)
+        if self.from_object_store:
+            fdri_fs = fsspec.filesystem(
+                "s3", asynchronous=True, anon=True, endpoint_url=self.object_store_config["endpoint_url"]
+            )
+            data_zstore = zarr.storage.FsspecStore(
+                fdri_fs, path=self.object_store_config["path"]
+            )
+            ds = xr.open_zarr(data_zstore, decode_times=True, decode_cf=True)
         else:
-            ds = xr.open_dataset(self.gridded_rainfall_data.path)
+            if isinstance(self.gridded_rainfall_data.path, list):
+                ds = xr.open_mfdataset(self.gridded_rainfall_data.path)
+            else:
+                ds = xr.open_dataset(self.gridded_rainfall_data.path)
         if self.gridded_rainfall_data.rename:
             ds = ds.rename(self.gridded_rainfall_data.rename)
         assert self.gridded_rainfall_col in ds.data_vars, f"{self.gridded_rainfall_col} not in gridded_rainfall_data"
