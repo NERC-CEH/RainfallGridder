@@ -6,6 +6,7 @@ Changelog
 
 Added
 ~~~~~
+* Add object_store_config for GriddedRainfallConfig so you can load from object store instead of file
 * Fix error with loading in too much xarray data
 * Add check_time_overlap_between_gridded_and_gauges function to data_formatting
 * Change schema so GriddedRainfallConfig checks for overlap
