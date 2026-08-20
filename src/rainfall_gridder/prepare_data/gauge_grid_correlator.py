@@ -52,6 +52,7 @@ class GaugeVsGriddedCorrelator:
         self.rainfall_offset_hours = rainfall_offset_hours
 
         self.nearest_gridded_daily = self._load_daily_nearest_gridded_daily(nearest_gridded_daily)
+        self.nearest_gridded_daily.load()
 
         if aggregate_gauge_to_daily:
             self.gauge_data = self._aggregate_gauge_subdaily_to_daily()
@@ -76,16 +77,18 @@ class GaugeVsGriddedCorrelator:
         TODO: This method need some work, because what if the day doesn't start at 00:00.
         TODO: also need to assert the data is actually daily
         """
-        nearest_gridded_daily = xarray_utils.replace_daily_time_step_hour_with_zero(
-            nearest_gridded_daily, time_col="time"
-        )
-
-        nearest_gridded_daily = self._subset_gridded_data_to_start_and_end_of_gauge(nearest_gridded_daily)
-        return spatial_utils.get_nearest_grid_cell(
+        nearest_gridded_daily = spatial_utils.get_nearest_grid_cell(
             nearest_gridded_daily,
             easting=self.gauge_metadata[self.easting_col][0],
             northing=self.gauge_metadata[self.northing_col][0],
         )
+
+        nearest_gridded_daily = xarray_utils.replace_daily_time_step_hour_with_zero(
+            nearest_gridded_daily, time_col="time"
+        )
+
+        return self._subset_gridded_data_to_start_and_end_of_gauge(nearest_gridded_daily)
+        
 
     def _join_gauge_to_grid(self):
         s_date = self.gauge_metadata[self.start_date_col][0]
