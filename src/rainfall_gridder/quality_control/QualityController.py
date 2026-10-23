@@ -332,9 +332,10 @@ class QualityController:
         if self.qcd_data is None:
             raise RuntimeError("You must call quality_control_data() before save_qcd_data()")
 
-        assert len(self.qcd_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
-            "Problem with metadata as duplicate filepaths"
-        )
+        if "file_path" in self.qcd_metadata.columns:
+            assert len(self.qcd_metadata.filter(pl.col("file_path").is_duplicated())) == 0, (
+                "Problem with metadata as duplicate filepaths"
+            )
 
         # Save partitioned parquet file
         (
