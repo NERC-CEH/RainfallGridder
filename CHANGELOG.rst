@@ -1,12 +1,22 @@
 Changelog
 =========
 
+[0.1.7] - 2026-10-23
+--------------------
+
+Added
+~~~~~
+* add .collect() to load rainfall from polars method
+* if "file_path" in self.qcd_metadata.columns:
+
+
 [0.1.6] - 2026-09-16
 --------------------
 
 Added
 ~~~~~
 * Add subhourlyQC rulebase
+* Save min_dist_km and rainfall seperately to zarr if they have different time_dims
 
 
 [0.1.5] - 2026-08-31
